@@ -1,157 +1,99 @@
-import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Events App</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { font-family: Arial; padding: 20px; direction: rtl; }
+#events-page { display: none; }
+.event-box {
+padding: 10px;
+margin: 10px 0;
+background: #f2f2f2;
+border-radius: 6px;
+}
+</style>
+</head>
+<body>
 
-void main() async {
-WidgetsFlutterBinding.ensureInitialized();
+<!-- صفحة تسجيل الدخول -->
+<div id="login-page">
+<h2>تسجيل الدخول</h2>
 
-await Supabase.initialize(
-url: 'https://YOUR-PROJECT.supabase.co',
-anonKey: 'YOUR-ANON-KEY',
+<input id="email" type="email" placeholder="الإيميل"><br><br>
+<input id="password" type="password" placeholder="الرقم السري"><br><br>
+
+<button onclick="login()">تسجيل الدخول</button>
+
+<p id="login-error" style="color:red"></p>
+</div>
+
+<!-- صفحة عرض الفعاليات -->
+<div id="events-page">
+<h2>الفعاليات</h2>
+<div id="events-list"></div>
+</div>
+
+<script>
+// الاتصال بسوبابيز
+const supabase = supabase.createClient(
+"https://YOUR-PROJECT.supabase.co",
+"YOUR-ANON-KEY"
 );
 
-runApp(const MyApp());
+// تسجيل الدخول
+async function login() {
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value.trim();
+
+const { data, error } = await supabase.auth.signInWithPassword({
+email: email,
+password: password
+});
+
+if (error) {
+document.getElementById("login-error").innerText = "خطأ: " + error.message;
+return;
 }
 
-class MyApp extends StatelessWidget {
-const MyApp({super.key});
+loadEvents();
 
-@override
-Widget build(BuildContext context) {
-return MaterialApp(
-debugShowCheckedModeBanner: false,
-home: LoginScreen(),
-);
-}
+document.getElementById("login-page").style.display = "none";
+document.getElementById("events-page").style.display = "block";
 }
 
-// ------------------------------------------------------
-// صفحة تسجيل الدخول
-// ------------------------------------------------------
+// تحميل الفعاليات
+async function loadEvents() {
+const { data, error } = await supabase
+.from('events')
+.select('*');
 
-class LoginScreen extends StatefulWidget {
-@override
-State<LoginScreen> createState() => _LoginScreenState();
+if (error) {
+document.getElementById("events-list").innerHTML =
+`<p style="color:red">خطأ أثناء تحميل الفعاليات — تأكد من RLS</p>`;
+return;
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-final emailController = TextEditingController();
-final passwordController = TextEditingController();
-bool loading = false;
+const container = document.getElementById("events-list");
+container.innerHTML = "";
 
-Future<void> login() async {
-setState(() => loading = true);
-
-try {
-final AuthResponse res = await Supabase.instance.client.auth.signInWithPassword(
-email: emailController.text.trim(),
-password: passwordController.text.trim(),
-);
-
-if (res.session != null) {
-Navigator.pushReplacement(
-context,
-MaterialPageRoute(builder: (_) => EventsScreen()),
-);
-}
-} catch (e) {
-ScaffoldMessenger.of(context).showSnackBar(
-SnackBar(content: Text("خطأ في تسجيل الدخول: $e")),
-);
+if (data.length === 0) {
+container.innerHTML = "<p>لا توجد فعاليات.</p>";
+return;
 }
 
-setState(() => loading = false);
+data.forEach(event => {
+const box = document.createElement('div');
+box.className = "event-box";
+box.innerHTML = `
+<strong>${event.title || "بدون عنوان"}</strong><br>
+<span>${event.date || ""}</span>
+`;
+container.appendChild(box);
+});
 }
+</script>
 
-@override
-Widget build(BuildContext context) {
-return Scaffold(
-appBar: AppBar(title: Text("تسجيل الدخول")),
-body: Padding(
-padding: const EdgeInsets.all(20),
-child: Column(
-children: [
-TextField(
-controller: emailController,
-decoration: InputDecoration(labelText: "الإيميل"),
-),
-TextField(
-controller: passwordController,
-decoration: InputDecoration(labelText: "الرقم السري"),
-obscureText: true,
-),
-const SizedBox(height: 20),
-ElevatedButton(
-onPressed: loading ? null : login,
-child: loading
-? CircularProgressIndicator(color: Colors.white)
-: Text("تسجيل الدخول"),
-),
-],
-),
-),
-);
-}
-}
-
-// ------------------------------------------------------
-// صفحة عرض الفعاليات Events
-// ------------------------------------------------------
-
-class EventsScreen extends StatefulWidget {
-@override
-State<EventsScreen> createState() => _EventsScreenState();
-}
-
-class _EventsScreenState extends State<EventsScreen> {
-Future<List<dynamic>> loadEvents() async {
-try {
-final response =
-await Supabase.instance.client.from('events').select('*');
-
-return response;
-} catch (e) {
-throw Exception("فشل تحميل الفعاليات — تأكد من RLS: $e");
-}
-}
-
-@override
-Widget build(BuildContext context) {
-return Scaffold(
-appBar: AppBar(title: Text("الفعاليات")),
-body: FutureBuilder(
-future: loadEvents(),
-builder: (context, snapshot) {
-if (snapshot.connectionState == ConnectionState.waiting) {
-return Center(child: CircularProgressIndicator());
-}
-
-if (snapshot.hasError) {
-return Center(
-child: Text(
-snapshot.error.toString(),
-textAlign: TextAlign.center,
-),
-);
-}
-
-final events = snapshot.data ?? [];
-
-if (events.isEmpty) {
-return Center(child: Text("لا توجد فعاليات."));
-}
-
-return ListView.builder(
-itemCount: events.length,
-itemBuilder: (_, i) {
-final event = events[i];
-return ListTile(
-title: Text(event['title'] ?? "بدون عنوان"),
-subtitle: Text(event['date'] ?? ""),
-);
-},
-);
-},
-),
-);
-}
-}
+</body>
+</html>
