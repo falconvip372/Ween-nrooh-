@@ -154,8 +154,7 @@ animation: spin 1s linear infinite;
 <p id="details-description" class="text-gray-700 leading-relaxed mb-8"></p>
 <a id="details-ticket-btn" href="#" target="_blank" class="inline-block bg-green-500 text-white px-10 py-3 rounded-lg font-bold text-lg hover:bg-green-600 transition-shadow shadow-lg">
 شراء التذكرة
-</button>
-<!-- يجب أن يكون هذا الزر <button> في النهاية ليغلق الـ <a> -->
+</a>
 </div>
 </div>
 </div>
@@ -266,17 +265,17 @@ animation: spin 1s linear infinite;
 
 </main>
 
+<!-- نهاية الهيكل - هنا يبدأ السكربت -->
+
 <!-- ==================
 منطق الجافاسكربت (المدمج)
 ================== -->
 <script type="module">
 // --- 1. إعداد Supabase ---
 const SUPABASE_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbHBzYXFhc2dmYXRvanZud2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzIzNzQsImV4cCI6MjA3ODk0ODM3NH0.pS0wijEolium8RJ08FfExuok8NJe4X-y1P2nAaRK4Z8';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbHBzYXFhc2dmYXRvanZud2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzIzNzQsInJ4cCI6MjA3ODk0ODM3NH0.pS0wijEolium8RJ08FfExuok8NJe4X-y1P2nAaRK4Z8';
 
-// استيراد العميل
 const { createClient } = supabase;
-// تهيئة الاتصال
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // --- 2. الصورة الافتراضية ---
