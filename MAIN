@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وين نروح؟ | دليلك الأول لفعاليات السعودية</title>
+<!-- تحميل Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- تحميل مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- خط Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* التنسيق CSS مدمج هنا */
+body { font-family: 'Inter', sans-serif; background-color: #f7f7f7; }
+.page { display: none; }
+.page.active { display: block; }
+#notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; transition: all 0.3s ease-out; }
+input[type="file"]::file-selector-button {
+margin-right: -1rem; margin-left: 1rem; background-color: #f0f4ff; color: #4338ca;
+padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; font-weight: 600;
+cursor: pointer; transition: background-color 0.2s;
+}
+input[type="file"]::file-selector-button:hover { background-color: #e0e7ff; }
+#loading-overlay {
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background-color: rgba(255, 255, 255, 0.8);
+display: flex; justify-content: center; align-items: center;
+z-index: 9998; backdrop-filter: blur(4px);
+}
+.loader {
+border: 5px solid #f3f3f3; border-top: 5px solid #4338ca;
+border-radius: 50%; width: 50px; height: 50px;
+animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+<!-- شاشة التحميل -->
+<div id="loading-overlay" class="hidden">
+<div class="loader"></div>
+</div>
+
+<!-- شريط الإشعارات -->
+<div id="notification" class="hidden text-white px-6 py-3 rounded-lg shadow-lg">
+<span id="notification-message"></span>
+</div>
+
+<!-- الهيدر والنافبار -->
+<header class="bg-white shadow-sm sticky top-0 z-50">
+<nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+<a href="#" class="text-3xl font-bold text-indigo-600 nav-link" data-page="home-page">
+وين نروح؟
+</a>
+<div>
+<!-- للزوار -->
+<button id="login-nav-btn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-shadow shadow-sm nav-link" data-page="login-page">
+تسجيل الدخول
+</button>
+<!-- لأصحاب الفعاليات (بعد تسجيل الدخول) -->
+<div id="profile-nav-btn" class="hidden items-center space-x-3 rtl:space-x-reverse">
+<button class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-indigo-200 nav-link" data-page="profile-page">
+لوحة التحكم
+</button>
+<button id="logout-btn" class="text-gray-500 hover:text-red-600" title="تسجيل الخروج">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+</button>
+</div>
+</div>
+</nav>
+</header>
+
+<!-- المحتوى الرئيسي -->
+<main class="container mx-auto p-4">
+
+<!-- 1. الصفحة الرئيسية (صفحة البحث والفعاليات) -->
+<div id="home-page" class="page active">
+<!-- شريط البحث والفلاتر -->
+<section class="bg-white rounded-lg shadow-md p-6 mb-8">
+<form id="filter-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<!-- فلتر المدينة -->
+<div>
+<label for="filter-city" class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
+<select id="filter-city" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+<option value="all">كل المدن</option>
+<option value="riyadh">الرياض</option>
+<option value="jeddah">جدة</option>
+<option value="dammam">الدمام/الخبر</option>
+<option value="ula">العلا</option>
+</select>
+</div>
+<!-- فلتر نوع الفعالية -->
+<div>
+<label for="filter-category" class="block text-sm font-medium text-gray-700 mb-1">التصنيف</label>
+<select id="filter-category" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+<option value="all">كل التصنيفات</option>
+<option value="music">موسيقى</option>
+<option value="food">طعام</option>
+<option value="art">فن وثقافة</option>
+<option value="workshop">ورش عمل</option>
+<option value="sport">رياضة</option>
+</select>
+</div>
+<!-- فلتر التاريخ -->
+<div>
+<label for="filter-date" class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
+<input type="date" id="filter-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+</div>
+<!-- زر البحث -->
+<button type="submit" class="md:self-end bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-shadow shadow-md">
+تطبيق الفلاتر
+</button>
+</form>
+</section>
+
+<section>
+<h2 class="text-2xl font-bold text-gray-800 mb-6">أبرز الفعاليات</h2>
+<div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- سيتم ملء البطاقات من قاعدة البيانات -->
+</div>
+</section>
+</div>
+
+<!-- 2. صفحة تفاصيل الفعالية -->
+<div id="event-details-page" class="page">
+<button class="mb-4 text-indigo-600 hover:underline nav-link" data-page="home-page">
+&larr; العودة للرئيسية
+</button>
+<div class="bg-white rounded-lg shadow-xl overflow-hidden">
+<div id="details-image-container" class="w-full h-96 bg-gray-200">
+<!-- سيتم وضع <img> أو <svg> هنا -->
+</div>
+<div class="p-8">
+<div class="flex flex-col md:flex-row justify-between md:items-center mb-4">
+<h1 id="details-title" class="text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-0"></h1>
+<span id="details-price" class="text-2xl font-bold text-indigo-700"></span>
+</div>
+<div class="flex flex-wrap items-center gap-4 mb-6 text-gray-600">
+<span id="details-category" class="px-4 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold"></span>
+<span id="details-location" class="flex items-center">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+</span>
+<span id="details-date" class="flex items-center">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+</span>
+</div>
+<h2 class="text-2xl font-semibold text-gray-800 mb-3">عن الفعالية</h2>
+<p id="details-description" class="text-gray-700 leading-relaxed mb-8"></p>
+<a id="details-ticket-btn" href="#" target="_blank" class="inline-block bg-green-500 text-white px-10 py-3 rounded-lg font-bold text-lg hover:bg-green-600 transition-shadow shadow-lg">
+شراء التذكرة
+</button>
+<!-- يجب أن يكون هذا الزر <button> في النهاية ليغلق الـ <a> -->
+</div>
+</div>
+</div>
+
+<!-- 3. صفحة تسجيل الدخول (للمنظمين) -->
+<div id="login-page" class="page">
+<div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 mt-10">
+<h2 class="text-3xl font-bold text-center text-gray-800 mb-6">لوحة تحكم المنظمين</h2>
+<form id="login-form">
+<div class="mb-4">
+<label for="login-email" class="block text-sm font-medium text-gray-700 mb-2">البريد الإلكتروني</label>
+<input type="email" id="login-email" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="email@example.com" required>
+</div>
+<div class="mb-6">
+<label for="login-password" class="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>
+<input type="password" id="login-password" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="********" required>
+</div>
+<button type="submit" id="login-submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-shadow shadow-md">
+دخول
+</button>
+<button type="button" id="signup-submit-btn" class="w-full mt-3 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+إنشاء حساب جديد
+</button>
+</form>
+</div>
+</div>
+
+<!-- 4. صفحة الملف الشخصي (لوحة تحكم المنظم) -->
+<div id="profile-page" class="page">
+<div class="flex justify-between items-center mb-8">
+<h1 id="welcome-message" class="text-3xl font-bold text-gray-900"></h1>
+<button class="bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition-shadow shadow-md nav-link" data-page="add-event-page">
++ إضافة فعالية جديدة
+</button>
+</div>
+<section class="bg-white rounded-lg shadow-lg p-8">
+<h2 class="text-2xl font-bold text-gray-800 mb-6">فعالياتي المنشورة</h2>
+<div id="my-events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- سيتم ملء فعاليات المستخدم من قاعدة البيانات -->
+</div>
+<p id="no-events-msg" class="text-gray-500 text-center py-10 hidden">ليس لديك أي فعاليات منشورة حتى الآن. ابدأ بإضافة فعاليتك الأولى!</p>
+</section>
+</div>
+
+<!-- 5. صفحة إضافة فعالية جديدة -->
+<div id="add-event-page" class="page">
+<button class="mb-4 text-indigo-600 hover:underline nav-link" data-page="profile-page">
+&larr; العودة للوحة التحكم
+</button>
+<section class="bg-white rounded-lg shadow-lg p-8">
+<h2 class="text-2xl font-bold text-gray-800 mb-6">إضافة فعالية جديدة</h2>
+<form id="add-event-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="md:col-span-2">
+<label for="event-title" class="block text-sm font-medium text-gray-700 mb-1">عنوان الفعالية</label>
+<input type="text" id="event-title" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+</div>
+<div>
+<label for="event-city" class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
+<select id="event-city" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+<option value="riyadh">الرياض</option>
+<option value="jeddah">جدة</option>
+<option value="dammam">الدمام/الخبر</option>
+<option value="ula">العلا</option>
+</select>
+</div>
+<div>
+<label for="event-category" class="block text-sm font-medium text-gray-700 mb-1">التصنيف</label>
+<select id="event-category" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+<option value="food">طعام</option>
+<option value="workshop">ورش عمل</option>
+<option value="art">فن وثقافة</option>
+<option value="music">موسيقى</option>
+<option value="sport">رياضة</option>
+</select>
+</div>
+<div>
+<label for="event-date" class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
+<input type="date" id="event-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+</div>
+<div>
+<label for="event-price" class="block text-sm font-medium text-gray-700 mb-1">سعر التذكرة (ر.س)</label>
+<input type="number" id="event-price" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="ادخل 0 إذا كانت مجانية" required>
+</div>
+<div class="md:col-span-2">
+<label for="event-description" class="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
+<textarea id="event-description" rows="4" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required></textarea>
+</div>
+
+<!-- حقل رابط التذكرة -->
+<div class="md:col-span-2">
+<label for="event-ticket-link" class="block text-sm font-medium text-gray-700 mb-1">رابط شراء التذكرة (اختياري)</label>
+<input type="url" id="event-ticket-link" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://example.com/ticket">
+</div>
+
+<div class="md:col-span-2">
+<label for="event-image" class="block text-sm font-medium text-gray-700 mb-1">الصورة (البوستر) [مطلوب]</label>
+<input type="file" id="event-image" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" accept="image/*" required>
+</div>
+
+<div class="md:col-span-2">
+<button type="submit" class="w-full md:w-auto bg-green-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-green-700 transition-shadow shadow-md">
+نشر الفعالية
+</button>
+</div>
+</form>
+</section>
+</div>
+
+</main>
+
+<!-- ==================
+منطق الجافاسكربت (المدمج)
+================== -->
+<script type="module">
+// --- 1. إعداد Supabase ---
+const SUPABASE_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbHBzYXFhc2dmYXRvanZud2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzIzNzQsImV4cCI6MjA3ODk0ODM3NH0.pS0wijEolium8RJ08FfExuok8NJe4X-y1P2nAaRK4Z8';
+
+// استيراد العميل
+const { createClient } = supabase;
+// تهيئة الاتصال
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// --- 2. الصورة الافتراضية ---
+const DEFAULT_SVG_PLACEHOLDER = `
+<svg class="w-full h-full object-cover bg-gray-200 text-gray-500" role="img" aria-label="صورة الفعالية" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice">
+<rect fill="currentColor" width="100%" height="100%" fill-opacity="0.1"/>
+<text x="50%" y="50%" fill="currentColor" dy=".3em" font-size="24" text-anchor="middle" font-family="Inter, sans-serif">صورة الفعالية</text>
+</svg>`;
+
+// --- 3. حالة التطبيق (State) ---
+let currentUser = null;
+
+// --- 4. عناصر الواجهة (Selectors) ---
+const pages = document.querySelectorAll('.page');
+const navLinks = document.querySelectorAll('.nav-link');
+const loginNavBtn = document.getElementById('login-nav-btn');
+const profileNavBtn = document.getElementById('profile-nav-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const eventsGrid = document.getElementById('events-grid');
+const myEventsGrid = document.getElementById('my-events-grid');
+const noEventsMsg = document.getElementById('no-events-msg');
+const notification = document.getElementById('notification');
+const notificationMessage = document.getElementById('notification-message');
+const detailsImageContainer = document.getElementById('details-image-container');
+const loadingOverlay = document.getElementById('loading-overlay');
+
+// --- 5. الدوال المساعدة (Helpers) ---
+function showPage(pageId) {
+pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+window.scrollTo(0, 0);
+}
+
+function showNotification(message, isError = false) {
+notificationMessage.textContent = message;
+notification.classList.remove('hidden');
+notification.classList.toggle('bg-green-500', !isError);
+notification.classList.toggle('bg-red-500', isError);
+setTimeout(() => notification.classList.add('hidden'), 3000);
+}
+
+function showLoading(isLoading) {
+loadingOverlay.classList.toggle('hidden', !isLoading);
+loadingOverlay.classList.toggle('flex', isLoading);
+}
+
+function updateNav(user) {
+currentUser = user;
+const isLoggedIn = !!user;
+loginNavBtn.classList.toggle('hidden', isLoggedIn);
+profileNavBtn.classList.toggle('hidden', !isLoggedIn);
+profileNavBtn.classList.toggle('flex', isLoggedIn);
+}
+
+function formatPrice(price) {
+if (price === 0) return 'مجاناً';
+return `${new Intl.NumberFormat('ar-SA').format(price)} ر.س`;
+}
+
+const translations = {
+music: 'موسيقى', food: 'طعام', art: 'فن وثقافة',
+workshop: 'ورش عمل', sport: 'رياضة', riyadh: 'الرياض',
+jeddah: 'جدة', dammam: 'الدمام/الخبر', ula: 'العلا'
+};
+
+function createEventCard(event) {
+const sponsoredBadge = event.isSponsored ?
+`<span class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 px-3 py-1 text-xs font-bold rounded-md shadow">إعلان مميز</span>` : '';
+
+const imageHtml = event.image_url
+? `<img src="${event.image_url}" alt="${event.title}" class="w-full h-56 object-cover bg-gray-200">`
+: `<div class="w-full h-56">${DEFAULT_SVG_PLACEHOLDER}</div>`;
+
+return `
+<div class="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl relative">
+${sponsoredBadge}
+${imageHtml}
+<div class="p-5">
+<div class="flex justify-between items-center mb-2">
+<span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700">
+${translations[event.category]}
+</span>
+<span class="text-xs text-gray-500">${translations[event.city]}</span>
+</div>
+<h3 class="text-xl font-bold text-gray-800 mb-3 truncate" title="${event.title}">
+${event.title}
+</h3>
+<div class="flex justify-between items-center">
+<span class="text-xl font-bold text-indigo-600">${formatPrice(event.price)}</span>
+<button class="view-details-btn text-indigo-600 hover:underline font-medium" data-id="${event.id}">
+التفاصيل
+</button>
+</div>
+</div>
+</div>
+`;
+}
+
+async function renderEvents(filter = {}) {
+showLoading(true);
+
+let query = db.from('events').select('*');
+
+if (filter.city && filter.city !== 'all') { query = query.eq('city', filter.city); }
+if (filter.category && filter.category !== 'all') { query = query.eq('category', filter.category); }
+if (filter.date) { query = query.eq('date', filter.date); }
+
+const { data, error } = await query
+.order('isSponsored', { ascending: false })
+.order('created_at', { ascending: false });
+
+showLoading(false);
+
+if (error) {
+console.error('خطأ في جلب الفعاليات:', error.message);
+showNotification('حدث خطأ أثناء تحميل الفعاليات. (الرجاء التأكد من صلاحيات RLS)', true);
+return;
+}
+
+eventsGrid.innerHTML = '';
+if (data.length === 0) {
+eventsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">لا توجد فعاليات مطابقة حالياً.</p>';
+return;
+}
+
+data.forEach(event => {
+eventsGrid.innerHTML += createEventCard(event);
+});
+}
+
+async function renderMyEvents() {
+if (!currentUser) return;
+
+showLoading(true);
+const { data, error } = await db.from('events')
+.select('*')
+.eq('owner_id', currentUser.id)
+.order('created_at', { ascending: false });
+
+showLoading(false);
+
+if (error) {
+console.error('خطأ في جلب فعالياتي:', error.message);
+return;
+}
+
+myEventsGrid.innerHTML = '';
+if (data.length > 0) {
+noEventsMsg.classList.add('hidden');
+data.forEach(event => {
+myEventsGrid.innerHTML += createEventCard(event);
+});
+} else {
+noEventsMsg.classList.remove('hidden');
+}
+}
+
+// --- 6. معالجات الأحداث (Event Handlers) ---
+
+document.body.addEventListener('click', async (e) => {
+if (e.target.classList.contains('nav-link')) {
+e.preventDefault();
+const pageId = e.target.dataset.page;
+showPage(pageId);
+
+if (pageId === 'profile-page' && currentUser) {
+document.getElementById('welcome-message').textContent = `أهلاً بك، ${currentUser.email}!`;
+await renderMyEvents();
+}
+}
+
+if (e.target.classList.contains('view-details-btn')) {
+e.preventDefault();
+showLoading(true);
+const id = parseInt(e.target.dataset.id);
+
+const { data: event, error } = await db.from('events').select('*').eq('id', id).single();
+showLoading(false);
+
+if (error || !event) {
+showNotification('لا يمكن العثور على هذه الفعالية.', true);
+return;
+}
+
+detailsImageContainer.innerHTML = event.image_url
+? `<img src="${event.image_url}" alt="${event.title}" class="w-full h-96 object-cover bg-gray-200">`
+: `<div class="w-full h-96">${DEFAULT_SVG_PLACEHOLDER}</div>`;
+
+document.getElementById('details-title').textContent = event.title;
+document.getElementById('details-price').textContent = formatPrice(event.price);
+document.getElementById('details-location').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${event.location || translations[event.city]}`;
+document.getElementById('details-date').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${event.date}`;
+document.getElementById('details-category').textContent = translations[event.category];
+document.getElementById('details-description').textContent = event.description;
+
+const ticketBtn = document.getElementById('details-ticket-btn');
+if(event.ticketLink) {
+ticketBtn.href = event.ticketLink;
+ticketBtn.classList.remove('hidden');
+} else {
+ticketBtn.classList.add('hidden');
+}
+
+showPage('event-details-page');
+}
+});
+
+// (2) معالجة تسجيل الدخول وإنشاء الحساب
+const loginForm = document.getElementById('login-form');
+const loginBtn = document.getElementById('login-submit-btn');
+const signupBtn = document.getElementById('signup-submit-btn');
+
+loginBtn.addEventListener('click', async (e) => {
+e.preventDefault();
+const email = document.getElementById('login-email').value;
+const password = document.getElementById('login-password').value;
+
+showLoading(true);
+const { data, error } = await db.auth.signInWithPassword({ email, password });
+showLoading(false);
+
+if (error) {
+showNotification(`خطأ في تسجيل الدخول: ${error.message}`, true);
+} else {
+showNotification(`أهلاً بعودتك، ${data.user.email}!`);
+showPage('home-page');
+}
+});
+
+signupBtn.addEventListener('click', async (e) => {
+e.preventDefault();
+const email = document.getElementById('login-email').value;
+const password = document.getElementById('login-password').value;
+
+if (password.length < 6) {
+showNotification('كلمة المرور يجب أن تكون 6 أحرف على الأقل.', true);
+return;
+}
+
+showLoading(true);
+const { data, error } = await db.auth.signUp({ email, password });
+showLoading(false);
+
+if (error) {
+showNotification(`خطأ في إنشاء الحساب: ${error.message}`, true);
+} else {
+showNotification('تم إنشاء حسابك! الرجاء مراجعة إيميلك لتفعيل الحساب.');
+loginForm.reset();
+}
+});
+
+// (3) تسجيل الخروج
+logoutBtn.addEventListener('click', async () => {
+showLoading(true);
+await db.auth.signOut();
+showLoading(false);
+showNotification('تم تسجيل خروجك.');
+showPage('home-page');
+});
+
+// (4) معالجة الفلترة
+document.getElementById('filter-form').addEventListener('submit', (e) => {
+e.preventDefault();
+const filter = {
+city: document.getElementById('filter-city').value,
+category: document.getElementById('filter-category').value,
+date: document.getElementById('filter-date').value
+};
+renderEvents(filter);
+showNotification('تم تطبيق الفلاتر.');
+});
+
+// (5) إضافة فعالية جديدة
+document.getElementById('add-event-form').addEventListener('submit', async (e) => {
+e.preventDefault();
+if (!currentUser) {
+showNotification('يجب تسجيل الدخول أولاً.', true);
+showPage('login-page');
+return;
+}
+
+const imageFile = document.getElementById('event-image').files[0];
+if (!imageFile) {
+showNotification('الرجاء اختيار صورة (بوستر) للفعالية.', true);
+return;
+}
+
+showLoading(true);
+
+// 1. رفع الصورة
+const fileExt = imageFile.name.split('.').pop();
+const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
+const filePath = `public/${fileName}`;
+
+const { data: uploadData, error: uploadError } = await db.storage
+.from('event-images')
+.upload(filePath, imageFile);
+
+if (uploadError) {
+showLoading(false);
+showNotification(`خطأ في رفع الصورة: ${uploadError.message}. (راجع صلاحيات التخزين)`, true);
+console.error(uploadError);
+return;
+}
+
+// 2. الحصول على الرابط العام للصورة
+const { data: urlData } = db.storage
+.from('event-images')
+.getPublicUrl(uploadData.path);
+
+// 3. تجميع بيانات الفعالية
+const newEvent = {
+title: document.getElementById('event-title').value,
+city: document.getElementById('event-city').value,
+category: document.getElementById('event-category').value,
+date: document.getElementById('event-date').value,
+price: parseFloat(document.getElementById('event-price').value),
+description: document.getElementById('event-description').value,
+ticketLink: document.getElementById('event-ticket-link').value,
+image_url: urlData.publicUrl,
+owner_id: currentUser.id,
+location: `${translations[document.getElementById('event-city').value]}`
+};
+
+// 4. حفظ الفعالية في قاعدة البيانات
+const { data: eventData, error: insertError } = await db.from('events').insert(newEvent);
+
+showLoading(false);
+
+if (insertError) {
+showNotification(`خطأ في حفظ الفعالية: ${insertError.message}`, true);
+console.error(insertError);
+} else {
+showNotification('تم نشر فعاليتك بنجاح!');
+e.target.reset();
+await renderEvents();
+showPage('home-page');
+}
+});
+
+// --- 7. التشغيل عند تحميل الصفحة ---
+// (أ) مراقبة حالة تسجيل الدخول
+db.auth.onAuthStateChange((event, session) => {
+if (session) {
+updateNav(session.user);
+} else {
+updateNav(null);
+}
+});
+
+// (ب) تحميل الفعاليات لأول مرة
+document.addEventListener('DOMContentLoaded', () => {
+renderEvents({ city: 'all', category: 'all' });
+});
+
+</script>
+</body>
+</html>
