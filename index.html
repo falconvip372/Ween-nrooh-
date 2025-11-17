@@ -625,22 +625,9 @@
         });
 
         // --- 7. التشغيل عند تحميل الصفحة ---
-        
-        // (أ) مراقبة حالة تسجيل الدخول
-        db.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                updateNav(session.user);
-            } else {
-                updateNav(null);
-            }
-        });
-
-        // (ب) تحميل الفعاليات لأول مرة
-        document.addEventListener('DOMContentLoaded', () => {
-            renderEvents({ city: 'all', category: 'all' });
-        });
-
-    </script>
+<script type="module" src="./app.js" defer></script>
 </body>
-</html>
+</html>        
+       
+
 
