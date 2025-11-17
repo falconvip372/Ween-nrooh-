@@ -1,645 +1,157 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>وين نروح؟ | دليلك الأول لفعاليات السعودية</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Supabase CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+void main() async {
+WidgetsFlutterBinding.ensureInitialized();
 
-<style>
-body { font-family: 'Inter', sans-serif; background-color: #f7f7f7; }
-.page { display: none; }
-.page.active { display: block; }
-#notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; transition: all 0.3s ease-out; }
-input[type="file"]::file-selector-button {
-margin-right: -1rem; margin-left: 1rem; background-color: #f0f4ff; color: #4338ca;
-padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; font-weight: 600;
-cursor: pointer; transition: background-color 0.2s;
-}
-input[type="file"]::file-selector-button:hover { background-color: #e0e7ff; }
-#loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-background-color: rgba(255,255,255,0.8); display: none; justify-content:center; align-items:center; z-index:9998; backdrop-filter: blur(4px); }
-#loading-overlay.show { display:flex; }
-.loader { border: 5px solid #f3f3f3; border-top: 5px solid #4338ca; border-radius:50%; width:50px; height:50px; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-</style>
-</head>
-<body class="bg-gray-50 text-gray-900">
+await Supabase.initialize(
+url: 'https://YOUR-PROJECT.supabase.co',
+anonKey: 'YOUR-ANON-KEY',
+);
 
-<div id="loading-overlay"><div class="loader" role="status" aria-label="جارٍ التحميل"></div></div>
-
-<div id="notification" class="hidden text-white px-6 py-3 rounded-lg shadow-lg">
-<span id="notification-message"></span>
-</div>
-
-<header class="bg-white shadow-sm sticky top-0 z-50">
-<nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-<a href="#" class="text-3xl font-bold text-indigo-600 nav-link" data-page="home-page">وين نروح؟</a>
-<div>
-<button id="login-nav-btn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-shadow shadow-sm nav-link" data-page="login-page">تسجيل الدخول</button>
-<div id="profile-nav-btn" class="hidden items-center space-x-3 rtl:space-x-reverse">
-<button class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-indigo-200 nav-link" data-page="profile-page">لوحة التحكم</button>
-<button id="logout-btn" class="text-gray-500 hover:text-red-600" title="تسجيل الخروج" aria-label="تسجيل الخروج">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-</button>
-</div>
-</div>
-</nav>
-</header>
-
-<main class="container mx-auto p-4">
-<div id="home-page" class="page active">
-<section class="bg-white rounded-lg shadow-md p-6 mb-8">
-<form id="filter-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-<div>
-<label for="filter-city" class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
-<select id="filter-city" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-<option value="all">كل المدن</option>
-<option value="riyadh">الرياض</option>
-<option value="jeddah">جدة</option>
-<option value="dammam">الدمام/الخبر</option>
-<option value="ula">العلا</option>
-</select>
-</div>
-<div>
-<label for="filter-category" class="block text-sm font-medium text-gray-700 mb-1">التصنيف</label>
-<select id="filter-category" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-<option value="all">كل التصنيفات</option>
-<option value="music">موسيقى</option>
-<option value="food">طعام</option>
-<option value="art">فن وثقافة</option>
-<option value="workshop">ورش عمل</option>
-<option value="sport">رياضة</option>
-</select>
-</div>
-<div>
-<label for="filter-date" class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
-<input type="date" id="filter-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-</div>
-<button type="submit" class="md:self-end bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-shadow shadow-md">تطبيق الفلاتر</button>
-</form>
-</section>
-
-<section>
-<h2 class="text-2xl font-bold text-gray-800 mb-6">أبرز الفعاليات</h2>
-<div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-</section>
-</div>
-
-<!-- تفاصيل، تسجيل دخول، ملف شخصي، إضافة فعالية كما في الأصل (مختصرة هنا للوضوح) -->
-<div id="event-details-page" class="page">
-<button class="mb-4 text-indigo-600 hover:underline nav-link" data-page="home-page">&larr; العودة للرئيسية</button>
-<div class="bg-white rounded-lg shadow-xl overflow-hidden">
-<div id="details-image-container" class="w-full h-96 bg-gray-200"></div>
-<div class="p-8">
-<div class="flex flex-col md:flex-row justify-between md:items-center mb-4">
-<h1 id="details-title" class="text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-0"></h1>
-<span id="details-price" class="text-2xl font-bold text-indigo-700"></span>
-</div>
-<div class="flex flex-wrap items-center gap-4 mb-6 text-gray-600">
-<span id="details-category" class="px-4 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold"></span>
-<span id="details-location" class="flex items-center"></span>
-<span id="details-date" class="flex items-center"></span>
-</div>
-<h2 class="text-2xl font-semibold text-gray-800 mb-3">عن الفعالية</h2>
-<p id="details-description" class="text-gray-700 leading-relaxed mb-8"></p>
-<a id="details-ticket-btn" href="#" target="_blank" class="inline-block bg-green-500 text-white px-10 py-3 rounded-lg font-bold text-lg hover:bg-green-600 transition-shadow shadow-lg">شراء التذكرة</a>
-</div>
-</div>
-</div>
-
-<div id="login-page" class="page">
-<div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 mt-10">
-<h2 class="text-3xl font-bold text-center text-gray-800 mb-6">لوحة تحكم المنظمين</h2>
-<form id="login-form">
-<div class="mb-4">
-<label for="login-email" class="block text-sm font-medium text-gray-700 mb-2">البريد الإلكتروني</label>
-<input type="email" id="login-email" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="email@example.com" required>
-</div>
-<div class="mb-6">
-<label for="login-password" class="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>
-<input type="password" id="login-password" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="********" required>
-</div>
-<button type="submit" id="login-submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-shadow shadow-md">دخول</button>
-<button type="button" id="signup-submit-btn" class="w-full mt-3 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors">إنشاء حساب جديد</button>
-</form>
-</div>
-</div>
-
-<div id="profile-page" class="page">
-<div class="flex justify-between items-center mb-8">
-<h1 id="welcome-message" class="text-3xl font-bold text-gray-900"></h1>
-<button class="bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition-shadow shadow-md nav-link" data-page="add-event-page">+ إضافة فعالية جديدة</button>
-</div>
-<section class="bg-white rounded-lg shadow-lg p-8">
-<h2 class="text-2xl font-bold text-gray-800 mb-6">فعالياتي المنشورة</h2>
-<div id="my-events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-<p id="no-events-msg" class="text-gray-500 text-center py-10 hidden">ليس لديك أي فعاليات منشورة حتى الآن. ابدأ بإضافة فعاليتك الأولى!</p>
-</section>
-</div>
-
-<div id="add-event-page" class="page">
-<button class="mb-4 text-indigo-600 hover:underline nav-link" data-page="profile-page">&larr; العودة للوحة التحكم</button>
-<section class="bg-white rounded-lg shadow-lg p-8">
-<h2 class="text-2xl font-bold text-gray-800 mb-6">إضافة فعالية جديدة</h2>
-<form id="add-event-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div class="md:col-span-2">
-<label for="event-title" class="block text-sm font-medium text-gray-700 mb-1">عنوان الفعالية</label>
-<input type="text" id="event-title" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-</div>
-<div>
-<label for="event-city" class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
-<select id="event-city" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-<option value="riyadh">الرياض</option>
-<option value="jeddah">جدة</option>
-<option value="dammam">الدمام/الخبر</option>
-<option value="ula">العلا</option>
-</select>
-</div>
-<div>
-<label for="event-category" class="block text-sm font-medium text-gray-700 mb-1">التصنيف</label>
-<select id="event-category" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-<option value="food">طعام</option>
-<option value="workshop">ورش عمل</option>
-<option value="art">فن وثقافة</option>
-<option value="music">موسيقى</option>
-<option value="sport">رياضة</option>
-</select>
-</div>
-<div>
-<label for="event-date" class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
-<input type="date" id="event-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-</div>
-<div>
-<label for="event-price" class="block text-sm font-medium text-gray-700 mb-1">سعر التذكرة (ر.س)</label>
-<input type="number" id="event-price" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="ادخل 0 إذا كانت مجانية" required>
-</div>
-<div class="md:col-span-2">
-<label for="event-description" class="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
-<textarea id="event-description" rows="4" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" required></textarea>
-</div>
-<div class="md:col-span-2">
-<label for="event-ticket-link" class="block text-sm font-medium text-gray-700 mb-1">رابط شراء التذكرة (اختياري)</label>
-<input type="url" id="event-ticket-link" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://example.com/ticket">
-</div>
-<div class="md:col-span-2">
-<label for="event-image" class="block text-sm font-medium text-gray-700 mb-1">الصورة (البوستر) [مطلوب]</label>
-<input type="file" id="event-image" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" accept="image/*" required>
-</div>
-<div class="md:col-span-2">
-<button type="submit" class="w-full md:w-auto bg-green-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-green-700 transition-shadow shadow-md">نشر الفعالية</button>
-</div>
-</form>
-</section>
-</div>
-
-</main>
-
-<script type="module">
-// --- إعداد Supabase ---
-const SUPABASE_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbHBzYXFhc2dmYXRvanZud2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzIzNzQsInJ4cCI6MjA3ODk0ODM3NH0.pS0wijEolium8RJ08FfExuok8NJe4X-y1P2nAaRK4Z8';
-
-// من CDN: يوجد كائن عام باسم "supabase"
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const DEFAULT_SVG_PLACEHOLDER = `
-<svg class="w-full h-full object-cover bg-gray-200 text-gray-500" role="img" aria-label="صورة الفعالية" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice">
-<rect fill="currentColor" width="100%" height="100%" fill-opacity="0.1"/>
-<text x="50%" y="50%" fill="currentColor" dy=".3em" font-size="24" text-anchor="middle" font-family="Inter, sans-serif">صورة الفعالية</text>
-</svg>`;
-
-let currentUser = null;
-
-// عناصر الواجهة
-const pages = document.querySelectorAll('.page');
-const loginNavBtn = document.getElementById('login-nav-btn');
-const profileNavBtn = document.getElementById('profile-nav-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const eventsGrid = document.getElementById('events-grid');
-const myEventsGrid = document.getElementById('my-events-grid');
-const noEventsMsg = document.getElementById('no-events-msg');
-const notification = document.getElementById('notification');
-const notificationMessage = document.getElementById('notification-message');
-const detailsImageContainer = document.getElementById('details-image-container');
-const loadingOverlay = document.getElementById('loading-overlay');
-
-function showPage(pageId) {
-pages.forEach(page => page.classList.toggle('active', page.id === pageId));
-window.scrollTo(0, 0);
+runApp(const MyApp());
 }
 
-let hideNotifTimeout = null;
-function showNotification(message, isError = false, duration = 3000) {
-if (hideNotifTimeout) clearTimeout(hideNotifTimeout);
-notificationMessage.textContent = message;
-notification.classList.remove('hidden');
-notification.classList.toggle('bg-green-500', !isError);
-notification.classList.toggle('bg-red-500', isError);
-hideNotifTimeout = setTimeout(() => notification.classList.add('hidden'), duration);
-}
+class MyApp extends StatelessWidget {
+const MyApp({super.key});
 
-function showLoading(isLoading) {
-loadingOverlay.classList.toggle('show', isLoading);
-}
-
-function updateNav(user) {
-currentUser = user;
-const isLoggedIn = !!user;
-if (loginNavBtn) loginNavBtn.classList.toggle('hidden', isLoggedIn);
-if (profileNavBtn) {
-profileNavBtn.classList.toggle('hidden', !isLoggedIn);
-profileNavBtn.classList.toggle('flex', isLoggedIn);
+@override
+Widget build(BuildContext context) {
+return MaterialApp(
+debugShowCheckedModeBanner: false,
+home: LoginScreen(),
+);
 }
 }
 
-function formatPrice(price) {
-const p = Number(price) || 0;
-if (p === 0) return 'مجاناً';
-return `${new Intl.NumberFormat('ar-SA').format(p)} ر.س`;
+// ------------------------------------------------------
+// صفحة تسجيل الدخول
+// ------------------------------------------------------
+
+class LoginScreen extends StatefulWidget {
+@override
+State<LoginScreen> createState() => _LoginScreenState();
 }
 
-const translations = {
-music: 'موسيقى', food: 'طعام', art: 'فن وثقافة',
-workshop: 'ورش عمل', sport: 'رياضة', riyadh: 'الرياض',
-jeddah: 'جدة', dammam: 'الدمام/الخبر', ula: 'العلا'
-};
+class _LoginScreenState extends State<LoginScreen> {
+final emailController = TextEditingController();
+final passwordController = TextEditingController();
+bool loading = false;
 
-function createEventCard(event) {
-const sponsoredBadge = event.isSponsored ?
-`<span class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 px-3 py-1 text-xs font-bold rounded-md shadow">إعلان مميز</span>` : '';
+Future<void> login() async {
+setState(() => loading = true);
 
-const imageHtml = event.image_url
-? `<img src="${event.image_url}" alt="${event.title}" class="w-full h-56 object-cover bg-gray-200">`
-: `<div class="w-full h-56">${DEFAULT_SVG_PLACEHOLDER}</div>`;
-
-const cityLabel = translations[event.city] || event.city || '';
-const categoryLabel = translations[event.category] || event.category || '';
-
-return `
-<div class="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl relative">
-${sponsoredBadge}
-${imageHtml}
-<div class="p-5">
-<div class="flex justify-between items-center mb-2">
-<span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700">${categoryLabel}</span>
-<span class="text-xs text-gray-500">${cityLabel}</span>
-</div>
-<h3 class="text-xl font-bold text-gray-800 mb-3 truncate" title="${escapeHtml(event.title)}">${escapeHtml(event.title)}</h3>
-<div class="flex justify-between items-center">
-<span class="text-xl font-bold text-indigo-600">${formatPrice(event.price)}</span>
-<button class="view-details-btn text-indigo-600 hover:underline font-medium" data-id="${event.id}">التفاصيل</button>
-</div>
-</div>
-</div>
-`;
-}
-
-function escapeHtml(str = '') {
-return String(str).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
-}
-
-async function renderEvents(filter = {}) {
-showLoading(true);
 try {
-let query = db.from('events').select('*');
+final AuthResponse res = await Supabase.instance.client.auth.signInWithPassword(
+email: emailController.text.trim(),
+password: passwordController.text.trim(),
+);
 
-if (filter.city && filter.city !== 'all') { query = query.eq('city', filter.city); }
-if (filter.category && filter.category !== 'all') { query = query.eq('category', filter.category); }
-if (filter.date) { query = query.eq('date', filter.date); }
-
-const { data, error } = await query
-.order('isSponsored', { ascending: false })
-.order('created_at', { ascending: false });
-
-if (error) {
-console.error('خطأ في جلب الفعاليات:', error);
-showNotification('حدث خطأ أثناء تحميل الفعاليات. (الرجاء التأكد من صلاحيات RLS)', true);
-eventsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">تعذر تحميل الفعاليات.</p>';
-return;
+if (res.session != null) {
+Navigator.pushReplacement(
+context,
+MaterialPageRoute(builder: (_) => EventsScreen()),
+);
+}
+} catch (e) {
+ScaffoldMessenger.of(context).showSnackBar(
+SnackBar(content: Text("خطأ في تسجيل الدخول: $e")),
+);
 }
 
-eventsGrid.innerHTML = '';
-if (!data || data.length === 0) {
-eventsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">لا توجد فعاليات مطابقة حالياً.</p>';
-return;
+setState(() => loading = false);
 }
 
-data.forEach(event => eventsGrid.innerHTML += createEventCard(event));
-} catch (err) {
-console.error(err);
-showNotification('حدث خطأ غير متوقع أثناء تحميل الفعاليات.', true);
-} finally {
-showLoading(false);
+@override
+Widget build(BuildContext context) {
+return Scaffold(
+appBar: AppBar(title: Text("تسجيل الدخول")),
+body: Padding(
+padding: const EdgeInsets.all(20),
+child: Column(
+children: [
+TextField(
+controller: emailController,
+decoration: InputDecoration(labelText: "الإيميل"),
+),
+TextField(
+controller: passwordController,
+decoration: InputDecoration(labelText: "الرقم السري"),
+obscureText: true,
+),
+const SizedBox(height: 20),
+ElevatedButton(
+onPressed: loading ? null : login,
+child: loading
+? CircularProgressIndicator(color: Colors.white)
+: Text("تسجيل الدخول"),
+),
+],
+),
+),
+);
 }
 }
 
-async function renderMyEvents() {
-if (!currentUser) return;
-showLoading(true);
+// ------------------------------------------------------
+// صفحة عرض الفعاليات Events
+// ------------------------------------------------------
+
+class EventsScreen extends StatefulWidget {
+@override
+State<EventsScreen> createState() => _EventsScreenState();
+}
+
+class _EventsScreenState extends State<EventsScreen> {
+Future<List<dynamic>> loadEvents() async {
 try {
-const { data, error } = await db.from('events')
-.select('*')
-.eq('owner_id', currentUser.id)
-.order('created_at', { ascending: false });
+final response =
+await Supabase.instance.client.from('events').select('*');
 
-if (error) {
-console.error('خطأ في جلب فعالياتي:', error);
-showNotification('تعذر تحميل فعالياتك.', true);
-return;
-}
-
-myEventsGrid.innerHTML = '';
-if (data && data.length > 0) {
-noEventsMsg.classList.add('hidden');
-data.forEach(event => myEventsGrid.innerHTML += createEventCard(event));
-} else {
-noEventsMsg.classList.remove('hidden');
-}
-} finally {
-showLoading(false);
+return response;
+} catch (e) {
+throw Exception("فشل تحميل الفعاليات — تأكد من RLS: $e");
 }
 }
 
-// Delegated click handler: يدعم النقر على الأيقونات والعناصر الفرعية
-document.body.addEventListener('click', async (e) => {
-// nav-link (روابط التنقل)
-const nav = e.target.closest('.nav-link');
-if (nav) {
-e.preventDefault();
-const pageId = nav.dataset.page;
-if (pageId) {
-showPage(pageId);
-if (pageId === 'profile-page' && currentUser) {
-document.getElementById('welcome-message').textContent = `أهلاً بك، ${currentUser.email || currentUser.user_metadata?.email || ''}!`;
-await renderMyEvents();
-}
-}
-return;
+@override
+Widget build(BuildContext context) {
+return Scaffold(
+appBar: AppBar(title: Text("الفعاليات")),
+body: FutureBuilder(
+future: loadEvents(),
+builder: (context, snapshot) {
+if (snapshot.connectionState == ConnectionState.waiting) {
+return Center(child: CircularProgressIndicator());
 }
 
-// view-details-btn
-const detailsBtn = e.target.closest('.view-details-btn');
-if (detailsBtn) {
-e.preventDefault();
-const idRaw = detailsBtn.dataset.id;
-const id = idRaw ? parseInt(idRaw, 10) : null;
-if (!id) {
-showNotification('معرّف الفعالية غير صالح.', true);
-return;
+if (snapshot.hasError) {
+return Center(
+child: Text(
+snapshot.error.toString(),
+textAlign: TextAlign.center,
+),
+);
 }
 
-showLoading(true);
-try {
-const { data: event, error } = await db.from('events').select('*').eq('id', id).single();
-if (error || !event) {
-console.error('error fetching event:', error);
-showNotification('لا يمكن العثور على هذه الفعالية.', true);
-return;
+final events = snapshot.data ?? [];
+
+if (events.isEmpty) {
+return Center(child: Text("لا توجد فعاليات."));
 }
 
-detailsImageContainer.innerHTML = event.image_url ? `<img src="${event.image_url}" alt="${escapeHtml(event.title)}" class="w-full h-96 object-cover bg-gray-200">` : `<div class="w-full h-96">${DEFAULT_SVG_PLACEHOLDER}</div>`;
-document.getElementById('details-title').textContent = event.title || '';
-document.getElementById('details-price').textContent = formatPrice(event.price);
-document.getElementById('details-location').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${event.location || translations[event.city] || ''}`;
-document.getElementById('details-date').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${event.date || ''}`;
-document.getElementById('details-category').textContent = translations[event.category] || event.category || '';
-document.getElementById('details-description').textContent = event.description || '';
-
-const ticketBtn = document.getElementById('details-ticket-btn');
-if (ticketBtn) {
-if (event.ticketLink) {
-ticketBtn.href = event.ticketLink;
-ticketBtn.classList.remove('hidden');
-} else {
-ticketBtn.classList.add('hidden');
+return ListView.builder(
+itemCount: events.length,
+itemBuilder: (_, i) {
+final event = events[i];
+return ListTile(
+title: Text(event['title'] ?? "بدون عنوان"),
+subtitle: Text(event['date'] ?? ""),
+);
+},
+);
+},
+),
+);
 }
 }
-
-showPage('event-details-page');
-} catch (err) {
-console.error(err);
-showNotification('حدث خطأ أثناء جلب تفاصيل الفعالية.', true);
-} finally {
-showLoading(false);
-}
-}
-});
-
-// --- Login / Signup ---
-const loginForm = document.getElementById('login-form');
-const loginBtn = document.getElementById('login-submit-btn');
-const signupBtn = document.getElementById('signup-submit-btn');
-
-if (loginForm) {
-loginForm.addEventListener('submit', async (e) => {
-e.preventDefault();
-const email = document.getElementById('login-email').value;
-const password = document.getElementById('login-password').value;
-if (!email || !password) {
-showNotification('الرجاء إدخال البريد وكلمة المرور.', true);
-return;
-}
-
-showLoading(true);
-try {
-const { data, error } = await db.auth.signInWithPassword({ email, password });
-if (error) {
-console.error('login error:', error);
-showNotification(`خطأ في تسجيل الدخول: ${error.message}`, true);
-} else {
-const user = data?.user ?? data?.session?.user ?? null;
-updateNav(user);
-if (user) currentUser = user;
-showNotification(`أهلاً بعودتك، ${user?.email || email}!`);
-showPage('home-page');
-await renderEvents({ city: 'all', category: 'all' });
-}
-} catch (err) {
-console.error(err);
-showNotification('حدث خطأ أثناء محاولة تسجيل الدخول.', true);
-} finally {
-showLoading(false);
-}
-});
-}
-
-if (signupBtn) {
-signupBtn.addEventListener('click', async (e) => {
-e.preventDefault();
-const email = document.getElementById('login-email').value;
-const password = document.getElementById('login-password').value;
-if (!email || !password) {
-showNotification('الرجاء إدخال بريد وكلمة مرور لإنشاء الحساب.', true);
-return;
-}
-if (password.length < 6) {
-showNotification('كلمة المرور يجب أن تكون 6 أحرف على الأقل.', true);
-return;
-}
-
-showLoading(true);
-try {
-const { data, error } = await db.auth.signUp({ email, password });
-if (error) {
-console.error('signup error:', error);
-showNotification(`خطأ في إنشاء الحساب: ${error.message}`, true);
-} else {
-const user = data?.user ?? data?.session?.user ?? null;
-updateNav(user);
-showNotification('تم إنشاء حسابك! الرجاء مراجعة إيميلك لتفعيل الحساب.');
-loginForm.reset();
-}
-} catch (err) {
-console.error(err);
-showNotification('حدث خطأ أثناء محاولة إنشاء الحساب.', true);
-} finally {
-showLoading(false);
-}
-});
-}
-
-// --- Logout ---
-if (logoutBtn) {
-logoutBtn.addEventListener('click', async () => {
-showLoading(true);
-try {
-const { error } = await db.auth.signOut();
-if (error) {
-console.error('signout error', error);
-showNotification('لم يتم تسجيل الخروج بنجاح.', true);
-} else {
-updateNav(null);
-showNotification('تم تسجيل خروجك.');
-showPage('home-page');
-}
-} catch (err) {
-console.error(err);
-showNotification('خطأ أثناء تسجيل الخروج.', true);
-} finally {
-showLoading(false);
-}
-});
-}
-
-// --- Filter form ---
-const filterForm = document.getElementById('filter-form');
-if (filterForm) {
-filterForm.addEventListener('submit', (e) => {
-e.preventDefault();
-const filter = {
-city: document.getElementById('filter-city').value,
-category: document.getElementById('filter-category').value,
-date: document.getElementById('filter-date').value
-};
-renderEvents(filter);
-showNotification('تم تطبيق الفلاتر.');
-});
-}
-
-// --- Add event ---
-const addEventForm = document.getElementById('add-event-form');
-if (addEventForm) {
-addEventForm.addEventListener('submit', async (e) => {
-e.preventDefault();
-if (!currentUser) {
-showNotification('يجب تسجيل الدخول أولاً.', true);
-showPage('login-page');
-return;
-}
-const imageFile = document.getElementById('event-image').files[0];
-if (!imageFile) {
-showNotification('الرجاء اختيار صورة (بوستر) للفعالية.', true);
-return;
-}
-
-showLoading(true);
-try {
-const fileExt = imageFile.name.split('.').pop();
-const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
-const filePath = `public/${fileName}`;
-
-const { data: uploadData, error: uploadError } = await db.storage
-.from('event-images')
-.upload(filePath, imageFile, { cacheControl: '3600', upsert: false });
-
-if (uploadError) {
-console.error('upload error:', uploadError);
-showNotification(`خطأ في رفع الصورة: ${uploadError.message}. (راجع صلاحيات التخزين)`, true);
-return;
-}
-
-// الحصول على الرابط العام
-const { data: urlData, error: urlError } = db.storage
-.from('event-images')
-.getPublicUrl(uploadData?.path || filePath);
-
-if (urlError) {
-console.error('getPublicUrl error:', urlError);
-showNotification('خطأ في الحصول على رابط الصورة.', true);
-return;
-}
-
-const newEvent = {
-title: document.getElementById('event-title').value,
-city: document.getElementById('event-city').value,
-category: document.getElementById('event-category').value,
-date: document.getElementById('event-date').value,
-price: Number(document.getElementById('event-price').value) || 0,
-description: document.getElementById('event-description').value,
-ticketLink: document.getElementById('event-ticket-link').value || null,
-image_url: urlData?.publicUrl || '',
-owner_id: currentUser.id,
-location: translations[document.getElementById('event-city').value] || document.getElementById('event-city').value
-};
-
-const { data: eventData, error: insertError } = await db.from('events').insert(newEvent);
-if (insertError) {
-console.error('insert error:', insertError);
-showNotification(`خطأ في حفظ الفعالية: ${insertError.message}`, true);
-return;
-}
-
-showNotification('تم نشر فعاليتك بنجاح!');
-e.target.reset();
-await renderEvents({ city: 'all', category: 'all' });
-showPage('home-page');
-} catch (err) {
-console.error(err);
-showNotification('حدث خطأ أثناء نشر الفعالية.', true);
-} finally {
-showLoading(false);
-}
-});
-}
-
-// --- Auth state listener ---
-db.auth.onAuthStateChange((event, session) => {
-const user = session?.user ?? null;
-updateNav(user);
-if (user) {
-currentUser = user;
-console.log('مستخدم مسجّل: ', user);
-} else {
-currentUser = null;
-console.log('لا يوجد مستخدم مسجّل');
-}
-});
-
-// --- Init load ---
-document.addEventListener('DOMContentLoaded', () => {
-renderEvents({ city: 'all', category: 'all' }).catch(err => {
-console.error('init renderEvents err', err);
-});
-});
-</script>
-
-</body>
-</html>
