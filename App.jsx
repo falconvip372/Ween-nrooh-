@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Bell, BellOff, Eye, Wifi, WifiOff, Key, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
 
-export default function RealTimeScanner() {
+export default function App() {
 // --- State ---
 const [symbol, setSymbol] = useState('AAPL');
 const [apiKey, setApiKey] = useState('');
@@ -16,11 +16,12 @@ const [error, setError] = useState('');
 // WebSocket Reference
 const ws = useRef(null);
 
-// --- Logic: RSI Calculation ---
+// --- Logic: RSI Calculation (مؤشر القوة النسبية) ---
 const calculateRSI = (prices) => {
-if (prices.length < 14) return 50; // نحتاج 14 قراءة على الأقل
+if (prices.length < 14) return 50;
 let gains = 0, losses = 0;
 
+// Calculate average gain and loss over the lookback period (14 is standard)
 for (let i = prices.length - 14; i < prices.length; i++) {
 const diff = prices[i] - prices[i - 1];
 if (diff >= 0) gains += diff;
@@ -35,7 +36,7 @@ const rs = avgGain / avgLoss;
 return 100 - (100 / (1 + rs));
 };
 
-// --- Logic: Start Monitoring ---
+// --- Logic: Start Monitoring (بدء المراقبة والاتصال) ---
 const startMonitoring = () => {
 if (!apiKey) {
 setError('الرجاء إدخال مفتاح Finnhub API أولاً');
@@ -44,39 +45,38 @@ return;
 if (!symbol) return;
 
 setError('');
-setData([]); // تصفير الشارت القديم
+setData([]); // Reset old chart data
 setAlerts([]);
-// إغلاق أي اتصال سابق
+
+// Close any existing connection
 if (ws.current) ws.current.close();
 
-// 1. فتح قناة اتصال WebSocket مع Finnhub
+// 1. Open WebSocket connection with Finnhub
 const socket = new WebSocket(`wss://ws.finnhub.io?token=${apiKey}`);
 ws.current = socket;
 
 socket.onopen = () => {
 setIsConnected(true);
-// الاشتراك في السهم المحدد
+// Subscribe to the selected symbol
 socket.send(JSON.stringify({ 'type': 'subscribe', 'symbol': symbol.toUpperCase() }));
 };
 
 socket.onmessage = (event) => {
 const response = JSON.parse(event.data);
 
-// Finnhub يرسل البيانات كـ "trades"
+// Finnhub sends data as "trades"
 if (response.type === 'trade' && response.data) {
-// نأخذ آخر صفقة تمت (Last Price)
 const trade = response.data[response.data.length - 1];
 const newPrice = trade.p; // p = price
-const timestamp = new Date(trade.t).toLocaleTimeString(); // t = timestamp
+const timestamp = new Date(trade.t * 1000).toLocaleTimeString(); // t = timestamp in Unix seconds
 
 setPrice(newPrice);
 
 setData(prevData => {
 const newData = [...prevData, { time: timestamp, price: newPrice }];
-// الاحتفاظ بآخر 50 قراءة فقط للحفاظ على سرعة المتصفح
 const slicedData = newData.slice(-50);
 
-// حساب المؤشرات
+// Calculate Indicators
 if (slicedData.length > 14) {
 const pricesOnly = slicedData.map(d => d.price);
 const newRSI = calculateRSI(pricesOnly);
@@ -105,16 +105,18 @@ if (ws.current) ws.current.close();
 setIsConnected(false);
 };
 
-// --- Logic: Alerts ---
+// --- Logic: Alerts (منطق التنبيهات) ---
 const checkAlerts = (currentPrice, currentRsi, sym) => {
 let type = null;
 let msg = '';
 
-// استراتيجية التنبيه (بسيطة وفعالة)
+// RSI < 30 = Oversold (Buy Signal)
 if (currentRsi < 30) {
 type = 'BUY';
 msg = `🟢 فرصة شراء! ${sym} وصل لمناطق تشبع بيعي (RSI: ${currentRsi.toFixed(1)})`;
-} else if (currentRsi > 70) {
+}
+// RSI > 70 = Overbought (Sell Signal)
+else if (currentRsi > 70) {
 type = 'SELL';
 msg = `🔴 فرصة بيع! ${sym} وصل لمناطق تشبع شرائي (RSI: ${currentRsi.toFixed(1)})`;
 }
@@ -122,7 +124,7 @@ msg = `🔴 فرصة بيع! ${sym} وصل لمناطق تشبع شرائي (RSI
 if (type) {
 setAlerts(prev => {
 const lastAlert = prev[0];
-// منع تكرار التنبيه في أقل من دقيقة
+// Prevent repeated alerts within one minute
 const now = Date.now();
 if (!lastAlert || (now - lastAlert.id > 60000)) {
 return [{ id: now, type, msg, price: currentPrice }, ...prev].slice(0, 20);
@@ -132,7 +134,7 @@ return prev;
 }
 };
 
-// تنظيف عند الخروج
+// Cleanup on unmount
 useEffect(() => {
 return () => {
 if (ws.current) ws.current.close();
@@ -199,11 +201,11 @@ className="bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg font-bold tran
 )}
 
 <p className="mt-4 text-xs text-gray-500">
-* يتطلب مفتاح مجاني من موقع finnhub.io. البيانات تدعم الأسهم الأمريكية (AAPL, TSLA, NVDA).
+* يتطلب مفتاح مجاني من موقع finnhub.io.
 </p>
 </div>
 
-{/* Dashboard */}
+{/* Dashboard Components (Chart and Alerts) */}
 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
 {/* Main Chart Area */}
