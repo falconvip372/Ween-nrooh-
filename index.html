@@ -1,435 +1,296 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>وين نروح؟ - النسخة المعتمدة</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+import React, { useState, useEffect, useRef } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { Bell, BellOff, Eye, Wifi, WifiOff, Key, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
 
-<style>
-:root { --primary: #4f46e5; --bg: #f8fafc; --text: #1e293b; --danger: #ef4444; --edit: #f59e0b; }
-body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; padding-bottom: 80px; }
+export default function RealTimeScanner() {
+// --- State ---
+const [symbol, setSymbol] = useState('AAPL');
+const [apiKey, setApiKey] = useState('');
+const [price, setPrice] = useState(null);
+const [data, setData] = useState([]);
+const [rsi, setRsi] = useState(null);
+const [alerts, setAlerts] = useState([]);
+const [isConnected, setIsConnected] = useState(false);
+const [error, setError] = useState('');
 
-/* Navbar */
-.navbar { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-.logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
-.nav-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; transition: 0.3s; font-family: inherit; }
-.nav-btn.active { background: var(--primary); color: white; }
+// WebSocket Reference
+const ws = useRef(null);
 
-.container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
-.screen { display: none; animation: fadeIn 0.4s; }
-.screen.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+// --- Logic: RSI Calculation ---
+const calculateRSI = (prices) => {
+if (prices.length < 14) return 50; // نحتاج 14 قراءة على الأقل
+let gains = 0, losses = 0;
 
-/* Cards */
-.card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #fff; position: relative; }
-
-/* إصلاح الصور بشكل نهائي */
-.image-wrapper {
-height: 200px;
-background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-position: relative;
-display: flex;
-align-items: center;
-justify-content: center;
-color: #4338ca;
-font-weight: bold;
-overflow: hidden;
-}
-.card-img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-position: absolute;
-top: 0;
-left: 0;
-z-index: 10; /* الصورة فوق كل شيء */
-background-color: white;
-}
-.placeholder-text { z-index: 1; position: relative; } /* النص تحت الصورة */
-
-.card-body { padding: 20px; }
-
-/* أزرار التحكم (تعديل/حذف) */
-.controls { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0; }
-.ctrl-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: inherit; }
-.btn-edit { background: var(--edit); }
-.btn-delete { background: var(--danger); }
-
-/* Forms */
-.form-box { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; margin: 0 auto; box-sizing: border-box; }
-input, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; }
-.btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 5px; }
-.btn-secondary { background: #334155; margin-top: 10px; }
-
-/* Welcome Header */
-.welcome-card { background: linear-gradient(to left, #4f46e5, #6366f1); color: white; padding: 20px; border-radius: 16px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4); }
-.welcome-text h3 { margin: 0 0 5px 0; font-size: 1.3rem; }
-.welcome-text p { margin: 0; opacity: 0.9; font-size: 0.9rem; }
-
-/* Tabs */
-.profile-tabs { display: flex; background: #e2e8f0; padding: 5px; border-radius: 12px; margin-bottom: 20px; }
-.tab-btn { flex: 1; border: none; background: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; font-family: inherit; }
-.tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-
-/* Modals */
-#editModal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
-.modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; text-align: right; box-sizing: border-box; }
-
-.alert { padding: 12px; border-radius: 10px; margin-top: 15px; font-size: 0.9rem; display: none; text-align: right; }
-.alert.error { background: #fee2e2; color: #b91c1c; }
-.alert.success { background: #dcfce7; color: #15803d; }
-
-.ticket-btn { background-color: #1e293b; color: white; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 15px; }
-</style>
-</head>
-<body>
-
-<nav class="navbar">
-<div class="logo" onclick="showScreen('home')"><i class="fas fa-location-dot"></i> وين نروح؟</div>
-<div>
-<button class="nav-btn active" onclick="showScreen('home')" id="btnHome">الرئيسية</button>
-<button class="nav-btn" onclick="checkAuth()" id="btnProfile">دخول</button>
-</div>
-</nav>
-
-<div class="container">
-
-<!-- 1. الرئيسية (للزوار) -->
-<div id="home-screen" class="screen active">
-<div style="text-align: center; margin: 20px 0 30px;">
-<h2 style="margin-bottom:5px">أحدث الوجهات 🌟</h2>
-<p style="color:#64748b; margin:0">اكتشف، زر، واستمتع</p>
-</div>
-<div id="public-list">
-<div style="text-align:center; padding:40px;">جاري التحميل... ⏳</div>
-</div>
-</div>
-
-<!-- 2. تسجيل الدخول -->
-<div id="login-screen" class="screen">
-<div class="form-box">
-<div style="font-size: 3rem; margin-bottom: 10px;">🔐</div>
-<h2>تسجيل الدخول</h2>
-<p style="color:#64748b; margin-bottom:20px">لأصحاب المشاريع والفعاليات</p>
-<input type="email" id="email" placeholder="البريد الإلكتروني" dir="ltr">
-<input type="password" id="password" placeholder="كلمة المرور" dir="ltr">
-<button class="btn-main" onclick="handleAuth('login')">دخول</button>
-<button class="btn-main btn-secondary" onclick="handleAuth('signup')">حساب جديد</button>
-<div id="auth-msg" class="alert"></div>
-</div>
-</div>
-
-<!-- 3. الملف الشخصي (للمالك فقط) -->
-<div id="profile-screen" class="screen">
-
-<!-- رسالة الترحيب -->
-<div class="welcome-card">
-<div class="welcome-text">
-<h3 id="welcomeName">مرحباً 👋</h3>
-<p>لوحة تحكم الشركاء</p>
-</div>
-<button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">خروج</button>
-</div>
-
-<div class="profile-tabs">
-<button class="tab-btn active" onclick="switchTab('my-ads')" id="tabMyAds">📋 إعلاناتي المنشورة</button>
-<button class="tab-btn" onclick="switchTab('add')" id="tabAdd">➕ إضافة جديد</button>
-</div>
-
-<!-- قسم إعلاناتي (تعديل وحذف) -->
-<div id="my-ads-section">
-<div id="my-list">جاري تحميل إعلاناتك...</div>
-</div>
-
-<!-- قسم الإضافة -->
-<div id="add-section" style="display:none;">
-<div class="form-box" style="text-align: right;">
-<h3 style="margin-top:0">نشر إعلان جديد</h3>
-<input type="text" id="newTitle" placeholder="عنوان العرض">
-<textarea id="newDesc" rows="3" placeholder="التفاصيل..."></textarea>
-<div style="display:flex; gap:10px;">
-<input type="text" id="newPrice" placeholder="السعر">
-<input type="text" id="newCity" placeholder="المدينة">
-</div>
-<input type="text" id="newImg" placeholder="رابط الصورة (اختياري)" dir="ltr">
-<input type="text" id="newLink" placeholder="رابط الحجز (اختياري)" dir="ltr">
-<button class="btn-main" onclick="addEvent()">نشر ✅</button>
-<div id="add-msg" class="alert"></div>
-</div>
-</div>
-</div>
-
-</div>
-
-<!-- مودال التعديل -->
-<div id="editModal">
-<div class="modal-content">
-<h3>✏️ تعديل الإعلان</h3>
-<input type="hidden" id="editId">
-<label>العنوان:</label> <input type="text" id="editTitle">
-<label>السعر:</label> <input type="text" id="editPrice">
-<label>المدينة:</label> <input type="text" id="editCity">
-<label>رابط الصورة:</label> <input type="text" id="editImg" dir="ltr">
-<button class="btn-main" onclick="saveEdit()">حفظ التعديلات</button>
-<button class="btn-main btn-secondary" onclick="document.getElementById('editModal').style.display='none'">إلغاء</button>
-</div>
-</div>
-
-<script>
-// ============================================================
-// 1. المفتاح مدمج (لن يتم طلبه أبداً)
-// ============================================================
-const PROJECT_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbHBzYXFhc2dmYXRvanZud2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMzNzIzNzQsImV4cCI6MjA0ODk0ODM3NH0.pS0wijEolium8RJ08FfExuok8NJe4X-y1P2nAaRK4Z8';
-
-const supabase = window.supabase.createClient(PROJECT_URL, API_KEY);
-let currentUser = null;
-
-// تشغيل التطبيق فوراً
-initApp();
-
-async function initApp() {
-try {
-// التحقق من المستخدم في الخلفية
-const { data } = await supabase.auth.getUser();
-if (data.user) {
-currentUser = data.user;
-updateUIState();
-}
-loadPublicEvents();
-} catch (err) {
-console.error("Init Error:", err);
-document.getElementById('public-list').innerHTML = `<div style="text-align:center; color:red">حدث خطأ أثناء التحميل: ${err.message}</div>`;
-}
+for (let i = prices.length - 14; i < prices.length; i++) {
+const diff = prices[i] - prices[i - 1];
+if (diff >= 0) gains += diff;
+else losses -= diff;
 }
 
-// --- التنقل ---
-function showScreen(name) {
-document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-document.getElementById('btnHome').classList.remove('active');
-document.getElementById('btnProfile').classList.remove('active');
+const avgGain = gains / 14;
+const avgLoss = losses / 14;
 
-if (name === 'home') {
-document.getElementById('home-screen').classList.add('active');
-document.getElementById('btnHome').classList.add('active');
-loadPublicEvents();
-} else if (name === 'profile') {
-document.getElementById('profile-screen').classList.add('active');
-document.getElementById('btnProfile').classList.add('active');
-if(currentUser) document.getElementById('welcomeName').innerText = `مرحباً، ${currentUser.email.split('@')[0]} 👋`;
-switchTab('my-ads');
-} else if (name === 'login') {
-document.getElementById('login-screen').classList.add('active');
-document.getElementById('btnProfile').classList.add('active');
-}
-}
-
-function checkAuth() {
-if (currentUser) showScreen('profile');
-else showScreen('login');
-}
-
-function updateUIState() {
-const btn = document.getElementById('btnProfile');
-btn.innerText = currentUser ? 'حسابي' : 'دخول';
-}
-
-function switchTab(tab) {
-document.getElementById('tabMyAds').className = tab === 'my-ads' ? 'tab-btn active' : 'tab-btn';
-document.getElementById('tabAdd').className = tab === 'add' ? 'tab-btn active' : 'tab-btn';
-
-document.getElementById('my-ads-section').style.display = tab === 'my-ads' ? 'block' : 'none';
-document.getElementById('add-section').style.display = tab === 'add' ? 'block' : 'none';
-if (tab === 'my-ads') loadMyAds();
-}
-
-// --- المصادقة ---
-async function handleAuth(type) {
-const email = document.getElementById('email').value;
-const password = document.getElementById('password').value;
-const msg = document.getElementById('auth-msg');
-
-if (!email || !password) { showMsg(msg, 'الرجاء تعبئة البيانات', 'error'); return; }
-showMsg(msg, 'جاري المعالجة...', '');
-
-let result;
-if (type === 'signup') result = await supabase.auth.signUp({ email, password });
-else result = await supabase.auth.signInWithPassword({ email, password });
-
-if (result.error) {
-showMsg(msg, result.error.message, 'error');
-} else {
-if (type === 'signup') {
-showMsg(msg, 'تم إنشاء الحساب! سجل دخولك الآن.', 'success');
-} else {
-currentUser = result.data.user;
-updateUIState();
-showScreen('profile');
-document.getElementById('email').value = '';
-document.getElementById('password').value = '';
-}
-}
-}
-
-async function logout() {
-await supabase.auth.signOut();
-currentUser = null;
-updateUIState();
-showScreen('home');
-}
-
-// --- إدارة الإعلانات ---
-async function addEvent() {
-const title = document.getElementById('newTitle').value;
-const price = document.getElementById('newPrice').value;
-const msg = document.getElementById('add-msg');
-
-if (!title || !price) { showMsg(msg, 'العنوان والسعر مطلوبان', 'error'); return; }
-showMsg(msg, 'جاري النشر...', '');
-
-const { error } = await supabase.from('events').insert({
-title,
-description: document.getElementById('newDesc').value,
-price,
-city: document.getElementById('newCity').value,
-image_url: document.getElementById('newImg').value,
-ticketLink: document.getElementById('newLink').value,
-owner_id: currentUser.id
-});
-
-if (error) showMsg(msg, error.message, 'error');
-else {
-showMsg(msg, 'تم النشر بنجاح! 🎉', 'success');
-document.querySelectorAll('#add-section input, #add-section textarea').forEach(i => i.value = '');
-setTimeout(() => switchTab('my-ads'), 1000);
-}
-}
-
-// --- عرض إعلاناتي (تظهر فقط للمالك) ---
-async function loadMyAds() {
-const list = document.getElementById('my-list');
-list.innerHTML = '<div style="text-align:center">جاري التحميل...</div>';
-
-const { data, error } = await supabase
-.from('events')
-.select('*')
-.eq('owner_id', currentUser.id)
-.order('created_at', { ascending: false });
-
-if (error) {
-list.innerHTML = `<div style="text-align:center; color:red">خطأ: ${error.message}</div>`;
-return;
-}
-
-if (data) {
-list.innerHTML = '';
-if (data.length === 0) list.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b">ليس لديك إعلانات بعد</div>';
-
-data.forEach(item => {
-const imgUrl = item.image_url || '';
-list.innerHTML += `
-<div class="card" id="card-${item.id}">
-<div class="card-body">
-<h3 style="margin:0">${item.title}</h3>
-<p style="color:#64748b">${item.price} ريال</p>
-<div class="controls">
-<button class="ctrl-btn btn-edit" onclick="openEdit('${item.id}', '${item.title}', '${item.price}', '${item.city || ''}', '${imgUrl}')">
-<i class="fas fa-edit"></i> تعديل
-</button>
-<button class="ctrl-btn btn-delete" onclick="deleteAd('${item.id}')">
-<i class="fas fa-trash"></i> حذف
-</button>
-</div>
-</div>
-</div>
-`;
-});
-}
-}
-
-// --- عرض للعامة ---
-async function loadPublicEvents() {
-const list = document.getElementById('public-list');
-if(!supabase) return;
-
-const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
-
-if (error) {
-list.innerHTML = `<div style="text-align:center; color:red">حدث خطأ في الاتصال: ${error.message}</div>`;
-return;
-}
-
-if (data) {
-list.innerHTML = '';
-if (data.length === 0) list.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b">لا توجد فعاليات حالياً</div>';
-
-data.forEach(item => {
-const imgUrl = item.image_url || '';
-const ticketBtn = item.ticketLink ? `<a href="${item.ticketLink}" target="_blank" class="ticket-btn">حجز / تفاصيل</a>` : '';
-
-list.innerHTML += `
-<div class="card">
-<div class="image-wrapper">
-<span class="placeholder-text">✨ صورة الفعالية</span>
-<img src="${imgUrl}" class="card-img" onerror="this.style.display='none'">
-<div style="position:absolute; bottom:10px; left:10px; background:white; padding:5px 10px; border-radius:15px; font-weight:bold; font-size:0.8rem; z-index:2;">${item.price} ريال</div>
-</div>
-<div class="card-body">
-<h3 style="margin:0 0 5px;">${item.title}</h3>
-<p style="color:#64748b; line-height:1.6; font-size:0.95rem; margin-bottom:0;">${item.description || ''}</p>
-${ticketBtn}
-</div>
-</div>
-`;
-});
-}
-}
-
-// --- الحذف والتعديل ---
-async function deleteAd(id) {
-if (!confirm('هل أنت متأكد من الحذف؟')) return;
-const { error } = await supabase.from('events').delete().eq('id', id);
-if (!error) document.getElementById(`card-${id}`).remove();
-else alert('فشل الحذف: تأكد من سياسات Supabase (Delete Policy)');
-}
-
-function openEdit(id, title, price, city, img) {
-document.getElementById('editModal').style.display = 'flex';
-document.getElementById('editId').value = id;
-document.getElementById('editTitle').value = title;
-document.getElementById('editPrice').value = price;
-document.getElementById('editCity').value = city;
-document.getElementById('editImg').value = img;
-}
-
-async function saveEdit() {
-const id = document.getElementById('editId').value;
-const updates = {
-title: document.getElementById('editTitle').value,
-price: document.getElementById('editPrice').value,
-city: document.getElementById('editCity').value,
-image_url: document.getElementById('editImg').value
+if (avgLoss === 0) return 100;
+const rs = avgGain / avgLoss;
+return 100 - (100 / (1 + rs));
 };
 
-const { error } = await supabase.from('events').update(updates).eq('id', id);
-
-if (!error) {
-document.getElementById('editModal').style.display = 'none';
-loadMyAds();
-} else {
-alert('فشل التعديل: تأكد من سياسات Supabase (Update Policy)');
+// --- Logic: Start Monitoring ---
+const startMonitoring = () => {
+if (!apiKey) {
+setError('الرجاء إدخال مفتاح Finnhub API أولاً');
+return;
 }
+if (!symbol) return;
+
+setError('');
+setData([]); // تصفير الشارت القديم
+setAlerts([]);
+// إغلاق أي اتصال سابق
+if (ws.current) ws.current.close();
+
+// 1. فتح قناة اتصال WebSocket مع Finnhub
+const socket = new WebSocket(`wss://ws.finnhub.io?token=${apiKey}`);
+ws.current = socket;
+
+socket.onopen = () => {
+setIsConnected(true);
+// الاشتراك في السهم المحدد
+socket.send(JSON.stringify({ 'type': 'subscribe', 'symbol': symbol.toUpperCase() }));
+};
+
+socket.onmessage = (event) => {
+const response = JSON.parse(event.data);
+
+// Finnhub يرسل البيانات كـ "trades"
+if (response.type === 'trade' && response.data) {
+// نأخذ آخر صفقة تمت (Last Price)
+const trade = response.data[response.data.length - 1];
+const newPrice = trade.p; // p = price
+const timestamp = new Date(trade.t).toLocaleTimeString(); // t = timestamp
+
+setPrice(newPrice);
+
+setData(prevData => {
+const newData = [...prevData, { time: timestamp, price: newPrice }];
+// الاحتفاظ بآخر 50 قراءة فقط للحفاظ على سرعة المتصفح
+const slicedData = newData.slice(-50);
+
+// حساب المؤشرات
+if (slicedData.length > 14) {
+const pricesOnly = slicedData.map(d => d.price);
+const newRSI = calculateRSI(pricesOnly);
+setRsi(newRSI);
+checkAlerts(newPrice, newRSI, symbol);
 }
 
-function showMsg(el, text, type) {
-el.style.display = 'block';
-el.innerText = text;
-el.className = 'alert ' + type;
+return slicedData;
+});
 }
-</script>
+};
 
-</body>
-</html>
+socket.onerror = (err) => {
+console.error(err);
+setError('فشل الاتصال. تأكد من صحة المفتاح أو رمز السهم.');
+setIsConnected(false);
+};
+
+socket.onclose = () => {
+setIsConnected(false);
+};
+};
+
+const stopMonitoring = () => {
+if (ws.current) ws.current.close();
+setIsConnected(false);
+};
+
+// --- Logic: Alerts ---
+const checkAlerts = (currentPrice, currentRsi, sym) => {
+let type = null;
+let msg = '';
+
+// استراتيجية التنبيه (بسيطة وفعالة)
+if (currentRsi < 30) {
+type = 'BUY';
+msg = `🟢 فرصة شراء! ${sym} وصل لمناطق تشبع بيعي (RSI: ${currentRsi.toFixed(1)})`;
+} else if (currentRsi > 70) {
+type = 'SELL';
+msg = `🔴 فرصة بيع! ${sym} وصل لمناطق تشبع شرائي (RSI: ${currentRsi.toFixed(1)})`;
+}
+
+if (type) {
+setAlerts(prev => {
+const lastAlert = prev[0];
+// منع تكرار التنبيه في أقل من دقيقة
+const now = Date.now();
+if (!lastAlert || (now - lastAlert.id > 60000)) {
+return [{ id: now, type, msg, price: currentPrice }, ...prev].slice(0, 20);
+}
+return prev;
+});
+}
+};
+
+// تنظيف عند الخروج
+useEffect(() => {
+return () => {
+if (ws.current) ws.current.close();
+};
+}, []);
+
+return (
+<div className="min-h-screen bg-slate-900 text-gray-100 font-sans p-4 md:p-8" dir="rtl">
+
+<div className="max-w-5xl mx-auto">
+{/* Header & Config */}
+<div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl mb-8">
+<div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+<h1 className="text-2xl font-bold flex items-center gap-2 text-blue-400">
+<Activity className="w-8 h-8" />
+رادار السوق الأمريكي (البيانات الحقيقية)
+</h1>
+<div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 ${isConnected ? 'bg-green-900/50 text-green-400 border border-green-500' : 'bg-red-900/50 text-red-400 border border-red-500'}`}>
+{isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+{isConnected ? 'متصل بالسوق المباشر' : 'غير متصل'}
+</div>
+</div>
+
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div className="relative">
+<Key className="absolute top-3 right-3 w-4 h-4 text-gray-500" />
+<input
+type="password"
+value={apiKey}
+onChange={(e) => setApiKey(e.target.value)}
+placeholder="ضع مفتاح Finnhub API هنا"
+className="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 pr-10 pl-4 focus:border-blue-500 outline-none text-sm"
+/>
+</div>
+<input
+type="text"
+value={symbol}
+onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+placeholder="رمز السهم (مثلاً AAPL)"
+className="bg-slate-900 border border-slate-600 rounded-lg py-2 px-4 focus:border-blue-500 outline-none text-center font-mono uppercase tracking-wider"
+/>
+{!isConnected ? (
+<button
+onClick={startMonitoring}
+className="bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
+>
+<Eye className="w-4 h-4" /> بدء الاتصال
+</button>
+) : (
+<button
+onClick={stopMonitoring}
+className="bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
+>
+<WifiOff className="w-4 h-4" /> قطع الاتصال
+</button>
+)}
+</div>
+
+{error && (
+<div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 text-red-200 text-sm rounded-lg flex items-center gap-2">
+<AlertTriangle className="w-4 h-4" />
+{error}
+</div>
+)}
+
+<p className="mt-4 text-xs text-gray-500">
+* يتطلب مفتاح مجاني من موقع finnhub.io. البيانات تدعم الأسهم الأمريكية (AAPL, TSLA, NVDA).
+</p>
+</div>
+
+{/* Dashboard */}
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+{/* Main Chart Area */}
+<div className="lg:col-span-2 space-y-6">
+{/* Price Card */}
+<div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex justify-between items-end">
+<div>
+<p className="text-gray-400 text-sm mb-1">سعر {symbol} المباشر</p>
+<div className="text-5xl font-bold font-mono text-white tracking-tighter">
+{price ? `$${price.toFixed(2)}` : '---'}
+</div>
+</div>
+{rsi && (
+<div className={`text-right px-4 py-2 rounded-xl border ${rsi > 70 ? 'bg-red-900/20 border-red-500/50' : rsi < 30 ? 'bg-green-900/20 border-green-500/50' : 'bg-slate-700/50 border-slate-600'}`}>
+<div className="text-xs text-gray-400 mb-1">مؤشر القوة RSI</div>
+<div className={`text-2xl font-bold ${rsi > 70 ? 'text-red-400' : rsi < 30 ? 'text-green-400' : 'text-blue-400'}`}>
+{rsi.toFixed(1)}
+</div>
+</div>
+)}
+</div>
+
+{/* Chart */}
+<div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 h-[400px]">
+<ResponsiveContainer width="100%" height="100%">
+<LineChart data={data}>
+<CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+<XAxis dataKey="time" hide />
+<YAxis domain={['auto', 'auto']} orientation="right" tick={{fill: '#94a3b8'}} />
+<Tooltip
+contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#fff' }}
+itemStyle={{ color: '#fff' }}
+/>
+<Line
+type="monotone"
+dataKey="price"
+stroke="#3b82f6"
+strokeWidth={2}
+dot={false}
+isAnimationActive={false}
+/>
+{price && <ReferenceLine y={price} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />}
+</LineChart>
+</ResponsiveContainer>
+</div>
+</div>
+
+{/* Alerts Panel */}
+<div className="bg-slate-800 rounded-2xl border border-slate-700 flex flex-col h-[500px] lg:h-auto">
+<div className="p-4 border-b border-slate-700">
+<h3 className="font-bold flex items-center gap-2 text-gray-200">
+<Bell className="w-5 h-5 text-yellow-500" />
+التنبيهات الحية
+</h3>
+</div>
+
+<div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+{alerts.length === 0 ? (
+<div className="h-full flex flex-col items-center justify-center text-gray-600 text-center">
+<Activity className="w-10 h-10 mb-2 opacity-50" />
+<p className="text-sm">لا توجد فرص حالياً</p>
+<p className="text-xs mt-1 opacity-70">المراقبة مستمرة...</p>
+</div>
+) : (
+alerts.map((alert) => (
+<div
+key={alert.id}
+className={`p-3 rounded-lg border-r-4 text-sm ${
+alert.type === 'BUY'
+? 'bg-green-900/20 border-green-500 text-green-200'
+: 'bg-red-900/20 border-red-500 text-red-200'
+}`}
+>
+<div className="flex justify-between items-center mb-1">
+<span className="font-bold">{alert.type === 'BUY' ? 'شراء' : 'بيع'}</span>
+<span className="text-xs opacity-70">{new Date(alert.id).toLocaleTimeString()}</span>
+</div>
+<p>{alert.msg}</p>
+<div className="mt-1 text-xs opacity-60 font-mono">السعر: {alert.price}</div>
+</div>
+))
+)}
+</div>
+</div>
+
+</div>
+</div>
+</div>
+);
+}
