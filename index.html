@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>وين نروح؟ - المنصة المتكاملة</title>
+<title>وين نروح؟ - الحل النهائي</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-:root { --primary: #6366f1; --bg: #f8fafc; --text: #1e293b; --danger: #ef4444; --edit: #f59e0b; }
+:root { --primary: #4f46e5; --bg: #f8fafc; --text: #1e293b; --danger: #ef4444; --edit: #f59e0b; }
 body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; padding-bottom: 80px; }
 
-/* الهيدر */
+/* Navbar */
 .navbar { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-.logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .nav-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; transition: 0.3s; font-family: inherit; }
 .nav-btn.active { background: var(--primary); color: white; }
 
@@ -23,37 +23,36 @@ body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: v
 .screen.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* البطاقات */
+/* Setup Screen */
+#setup-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; display:flex; align-items:center; justify-content:center; }
+
+/* Cards */
 .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #fff; position: relative; }
 .image-wrapper { height: 200px; background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); position: relative; display: flex; align-items: center; justify-content: center; color: #4338ca; font-weight: bold; }
 .card-img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
 .card-body { padding: 20px; }
 
-/* أزرار التحكم (تعديل/حذف) */
+/* Controls */
 .controls { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0; }
-.ctrl-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.ctrl-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: inherit; }
 .btn-edit { background: var(--edit); }
 .btn-delete { background: var(--danger); }
 
-/* النماذج */
-.form-box { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); text-align: center; }
+/* Forms */
+.form-box { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; margin: 0 auto; }
 input, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; }
-input:focus { border-color: var(--primary); outline: none; }
-
-.btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 5px; transition: 0.2s; }
+.btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 5px; }
 .btn-secondary { background: #334155; margin-top: 10px; }
 
-/* رسالة الترحيب */
+/* Welcome Header */
 .welcome-card { background: linear-gradient(to left, #4f46e5, #6366f1); color: white; padding: 20px; border-radius: 16px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4); }
-.welcome-text h3 { margin: 0 0 5px 0; font-size: 1.3rem; }
-.welcome-text p { margin: 0; opacity: 0.9; font-size: 0.9rem; }
 
-/* تبويبات الملف الشخصي */
+/* Tabs */
 .profile-tabs { display: flex; background: #e2e8f0; padding: 5px; border-radius: 12px; margin-bottom: 20px; }
 .tab-btn { flex: 1; border: none; background: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; font-family: inherit; }
 .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 
-/* مودال التعديل */
+/* Modals */
 #editModal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
 .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; text-align: right; }
 
@@ -66,8 +65,20 @@ input:focus { border-color: var(--primary); outline: none; }
 </head>
 <body>
 
+<!-- 1. شاشة الإعداد (لإدخال المفتاح الصحيح) -->
+<div id="setup-screen" style="display:none;">
+<div class="form-box">
+<div style="font-size: 3rem;">🔑</div>
+<h3>تفعيل التطبيق</h3>
+<p style="color:#64748b">ألصق مفتاح API الخاص بك هنا لمرة واحدة</p>
+<input type="text" id="apiKeyInput" placeholder="Supabase Key">
+<button class="btn-main" onclick="saveKeyAndStart()">حفظ وتشغيل 🚀</button>
+<p id="setup-error" style="color:red; display:none; margin-top:10px;"></p>
+</div>
+</div>
+
 <nav class="navbar">
-<a class="logo" onclick="showScreen('home')"><i class="fas fa-location-dot"></i> وين نروح؟</a>
+<div class="logo" onclick="showScreen('home')"><i class="fas fa-location-dot"></i> وين نروح؟</div>
 <div>
 <button class="nav-btn active" onclick="showScreen('home')" id="btnHome">الرئيسية</button>
 <button class="nav-btn" onclick="checkAuth()" id="btnProfile">دخول</button>
@@ -75,8 +86,7 @@ input:focus { border-color: var(--primary); outline: none; }
 </nav>
 
 <div class="container">
-
-<!-- 1. الرئيسية -->
+<!-- شاشة الرئيسية -->
 <div id="home-screen" class="screen active">
 <div style="text-align: center; margin: 20px 0 30px;">
 <h2 style="margin-bottom:5px">أحدث الوجهات 🌟</h2>
@@ -85,9 +95,12 @@ input:focus { border-color: var(--primary); outline: none; }
 <div id="public-list">
 <div style="text-align:center; padding:40px;">جاري التحميل... ⏳</div>
 </div>
+<div style="text-align:center; margin-top:30px;">
+<button onclick="resetApp()" style="background:none; border:none; color:#ccc; font-size:0.8rem; text-decoration:underline; cursor:pointer;">تغيير مفتاح API</button>
+</div>
 </div>
 
-<!-- 2. تسجيل الدخول -->
+<!-- شاشة تسجيل الدخول -->
 <div id="login-screen" class="screen">
 <div class="form-box">
 <div style="font-size: 3rem; margin-bottom: 10px;">🔐</div>
@@ -101,26 +114,28 @@ input:focus { border-color: var(--primary); outline: none; }
 </div>
 </div>
 
-<!-- 3. الملف الشخصي (لوحة التحكم) -->
+<!-- شاشة الملف الشخصي -->
 <div id="profile-screen" class="screen">
-
-<!-- رسالة الترحيب -->
 <div class="welcome-card">
-<div class="welcome-text">
-<h3 id="welcomeName">مرحباً 👋</h3>
-<p>لوحة تحكم الشركاء</p>
+<div>
+<h3 style="margin:0 0 5px 0" id="welcomeName">مرحباً 👋</h3>
+<small style="opacity:0.9">لوحة تحكم الشركاء</small>
 </div>
 <button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">خروج</button>
 </div>
 
-<!-- التبويبات -->
 <div class="profile-tabs">
-<button class="tab-btn active" onclick="switchTab('add')" id="tabAdd">➕ إضافة إعلان</button>
-<button class="tab-btn" onclick="switchTab('my-ads')" id="tabMyAds">📋 إعلاناتي</button>
+<button class="tab-btn active" onclick="switchTab('my-ads')" id="tabMyAds">📋 إعلاناتي</button>
+<button class="tab-btn" onclick="switchTab('add')" id="tabAdd">➕ إضافة</button>
+</div>
+
+<!-- قسم إعلاناتي -->
+<div id="my-ads-section">
+<div id="my-list">جاري تحميل إعلاناتك...</div>
 </div>
 
 <!-- قسم الإضافة -->
-<div id="add-section">
+<div id="add-section" style="display:none;">
 <div class="form-box" style="text-align: right;">
 <h3 style="margin-top:0">نشر إعلان جديد</h3>
 <input type="text" id="newTitle" placeholder="عنوان العرض">
@@ -135,53 +150,93 @@ input:focus { border-color: var(--primary); outline: none; }
 <div id="add-msg" class="alert"></div>
 </div>
 </div>
-
-<!-- قسم إعلاناتي (مع التعديل والحذف) -->
-<div id="my-ads-section" style="display:none;">
-<div id="my-list">جاري تحميل إعلاناتك...</div>
 </div>
 
 </div>
-</div>
 
-<!-- نافذة التعديل -->
+<!-- مودال التعديل -->
 <div id="editModal">
 <div class="modal-content">
 <h3>✏️ تعديل الإعلان</h3>
 <input type="hidden" id="editId">
-<label>العنوان:</label>
-<input type="text" id="editTitle">
-<label>السعر:</label>
-<input type="text" id="editPrice">
-<label>رابط الصورة:</label>
-<input type="text" id="editImg" dir="ltr">
-
+<label>العنوان:</label> <input type="text" id="editTitle">
+<label>السعر:</label> <input type="text" id="editPrice">
+<label>المدينة:</label> <input type="text" id="editCity">
+<label>رابط الصورة:</label> <input type="text" id="editImg" dir="ltr">
 <button class="btn-main" onclick="saveEdit()">حفظ التعديلات</button>
 <button class="btn-main btn-secondary" onclick="document.getElementById('editModal').style.display='none'">إلغاء</button>
 </div>
 </div>
 
 <script>
-// ============================================================
-// إعدادات الاتصال (مدمجة - لا تحتاج لتدخل منك)
-// ============================================================
 const PROJECT_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbHBzYXFhc2dmYXRvanZud2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMzNzIzNzQsImV4cCI6MjA0ODk0ODM3NH0.pS0wijEolium8RJ08FfExuok8NJe4X-y1P2nAaRK4Z8';
-
-const supabase = window.supabase.createClient(PROJECT_URL, API_KEY);
+const STORAGE_KEY_NAME = 'wein_nroh_user_api_key'; // اسم جديد للتخزين
+let supabase;
 let currentUser = null;
 
-// تشغيل التطبيق
-initApp();
+// عند التشغيل
+checkSystem();
 
-async function initApp() {
-// التحقق من المستخدم الحالي
+function checkSystem() {
+const savedKey = localStorage.getItem(STORAGE_KEY_NAME);
+if (savedKey) {
+initializeSupabase(savedKey);
+} else {
+document.getElementById('setup-screen').style.display = 'flex';
+}
+}
+
+function saveKeyAndStart() {
+const key = document.getElementById('apiKeyInput').value.trim();
+if (key.length > 20) {
+localStorage.setItem(STORAGE_KEY_NAME, key);
+document.getElementById('setup-screen').style.display = 'none';
+initializeSupabase(key);
+} else {
+alert("المفتاح قصير جداً!");
+}
+}
+
+function resetApp() {
+if(confirm("هل تريد حذف المفتاح وإعادة إدخاله؟")) {
+localStorage.removeItem(STORAGE_KEY_NAME);
+location.reload();
+}
+}
+
+async function initializeSupabase(key) {
+try {
+supabase = window.supabase.createClient(PROJECT_URL, key);
+
+// تجربة الاتصال
+const { data, error } = await supabase.from('events').select('count').limit(1);
+
+if (error && (error.code === 'PGRST301' || error.message.includes('key'))) {
+// المفتاح خطأ
+localStorage.removeItem(STORAGE_KEY_NAME);
+alert("المفتاح المحفوظ غير صحيح. يرجى إدخاله مرة أخرى.");
+location.reload();
+return;
+}
+
+// الاتصال ناجح
+checkUserSession();
+loadPublicEvents();
+
+} catch (err) {
+console.error(err);
+alert("حدث خطأ غير متوقع. أعد المحاولة.");
+localStorage.removeItem(STORAGE_KEY_NAME);
+location.reload();
+}
+}
+
+async function checkUserSession() {
 const { data } = await supabase.auth.getUser();
 if (data.user) {
 currentUser = data.user;
 updateUIState();
 }
-loadPublicEvents();
 }
 
 // --- التنقل ---
@@ -197,10 +252,8 @@ loadPublicEvents();
 } else if (name === 'profile') {
 document.getElementById('profile-screen').classList.add('active');
 document.getElementById('btnProfile').classList.add('active');
-if(currentUser) {
-document.getElementById('welcomeName').innerText = `مرحباً، ${currentUser.email.split('@')[0]} 👋`;
-}
-switchTab('add');
+if(currentUser) document.getElementById('welcomeName').innerText = `مرحباً، ${currentUser.email.split('@')[0]} 👋`;
+switchTab('my-ads');
 } else if (name === 'login') {
 document.getElementById('login-screen').classList.add('active');
 document.getElementById('btnProfile').classList.add('active');
@@ -208,8 +261,7 @@ document.getElementById('btnProfile').classList.add('active');
 }
 
 function checkAuth() {
-if (currentUser) showScreen('profile');
-else showScreen('login');
+if (currentUser) showScreen('profile'); else showScreen('login');
 }
 
 function updateUIState() {
@@ -218,12 +270,11 @@ btn.innerText = currentUser ? 'حسابي' : 'دخول';
 }
 
 function switchTab(tab) {
-document.getElementById('tabAdd').className = tab === 'add' ? 'tab-btn active' : 'tab-btn';
 document.getElementById('tabMyAds').className = tab === 'my-ads' ? 'tab-btn active' : 'tab-btn';
+document.getElementById('tabAdd').className = tab === 'add' ? 'tab-btn active' : 'tab-btn';
 
-document.getElementById('add-section').style.display = tab === 'add' ? 'block' : 'none';
 document.getElementById('my-ads-section').style.display = tab === 'my-ads' ? 'block' : 'none';
-
+document.getElementById('add-section').style.display = tab === 'add' ? 'block' : 'none';
 if (tab === 'my-ads') loadMyAds();
 }
 
@@ -233,22 +284,18 @@ const email = document.getElementById('email').value;
 const password = document.getElementById('password').value;
 const msg = document.getElementById('auth-msg');
 
-if (!email || !password) {
-msg.style.display = 'block'; msg.className = 'alert error';
-msg.innerText = 'الرجاء تعبئة البيانات'; return;
-}
-
-msg.style.display = 'block'; msg.innerText = 'جاري المعالجة...'; msg.className = 'alert';
+if (!email || !password) { showMsg(msg, 'الرجاء تعبئة البيانات', 'error'); return; }
+showMsg(msg, 'جاري المعالجة...', '');
 
 let result;
 if (type === 'signup') result = await supabase.auth.signUp({ email, password });
 else result = await supabase.auth.signInWithPassword({ email, password });
 
 if (result.error) {
-msg.className = 'alert error'; msg.innerText = result.error.message;
+showMsg(msg, result.error.message, 'error');
 } else {
 if (type === 'signup') {
-msg.className = 'alert success'; msg.innerText = 'تم إنشاء الحساب! سجل دخولك الآن.';
+showMsg(msg, 'تم إنشاء الحساب! سجل دخولك الآن.', 'success');
 } else {
 currentUser = result.data.user;
 updateUIState();
@@ -272,12 +319,8 @@ const title = document.getElementById('newTitle').value;
 const price = document.getElementById('newPrice').value;
 const msg = document.getElementById('add-msg');
 
-if (!title || !price) {
-msg.style.display = 'block'; msg.className = 'alert error';
-msg.innerText = 'العنوان والسعر مطلوبان'; return;
-}
-
-msg.style.display = 'block'; msg.innerText = 'جاري النشر...'; msg.className = 'alert';
+if (!title || !price) { showMsg(msg, 'العنوان والسعر مطلوبان', 'error'); return; }
+showMsg(msg, 'جاري النشر...', '');
 
 const { error } = await supabase.from('events').insert({
 title,
@@ -289,16 +332,13 @@ ticketLink: document.getElementById('newLink').value,
 owner_id: currentUser.id
 });
 
-if (error) {
-msg.className = 'alert error'; msg.innerText = error.message;
-} else {
-msg.className = 'alert success'; msg.innerText = 'تم النشر بنجاح! 🎉';
-document.querySelectorAll('#add-section input, #add-section textarea').forEach(i => i.value = '');
+if (error) showMsg(msg, error.message, 'error');
+else {
+showMsg(msg, 'تم النشر بنجاح! 🎉', 'success');
 setTimeout(() => switchTab('my-ads'), 1000);
 }
 }
 
-// عرض إعلانات المستخدم فقط
 async function loadMyAds() {
 const list = document.getElementById('my-list');
 list.innerHTML = '<div style="text-align:center">جاري التحميل...</div>';
@@ -308,6 +348,11 @@ const { data, error } = await supabase
 .select('*')
 .eq('owner_id', currentUser.id)
 .order('created_at', { ascending: false });
+
+if (error) {
+list.innerHTML = `<div style="text-align:center; color:red">خطأ: ${error.message}</div>`;
+return;
+}
 
 if (data) {
 list.innerHTML = '';
@@ -321,7 +366,7 @@ list.innerHTML += `
 <h3 style="margin:0">${item.title}</h3>
 <p style="color:#64748b">${item.price} ريال</p>
 <div class="controls">
-<button class="ctrl-btn btn-edit" onclick="openEdit('${item.id}', '${item.title}', '${item.price}', '${imgUrl}')">
+<button class="ctrl-btn btn-edit" onclick="openEdit('${item.id}', '${item.title}', '${item.price}', '${item.city || ''}', '${imgUrl}')">
 <i class="fas fa-edit"></i> تعديل
 </button>
 <button class="ctrl-btn btn-delete" onclick="deleteAd('${item.id}')">
@@ -335,23 +380,26 @@ list.innerHTML += `
 }
 }
 
-// عرض كل الإعلانات للعامة
 async function loadPublicEvents() {
 const list = document.getElementById('public-list');
-const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+
+if (error) {
+list.innerHTML = `<div style="text-align:center; color:red">خطأ في الاتصال (تأكد من المفتاح)</div>`;
+return;
+}
 
 if (data) {
 list.innerHTML = '';
 if (data.length === 0) list.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b">لا توجد فعاليات حالياً</div>';
 
 data.forEach(item => {
-const imgUrl = item.image_url || 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80';
+const imgUrl = item.image_url || '';
 const ticketBtn = item.ticketLink ? `<a href="${item.ticketLink}" target="_blank" class="ticket-btn">حجز / تفاصيل</a>` : '';
 
 list.innerHTML += `
 <div class="card">
 <div class="image-wrapper">
-<span style="z-index:1">✨ صورة الفعالية</span>
 <img src="${imgUrl}" class="card-img" onerror="this.style.display='none'">
 <div style="position:absolute; bottom:10px; left:10px; background:white; padding:5px 10px; border-radius:15px; font-weight:bold; font-size:0.8rem; z-index:2;">${item.price} ريال</div>
 </div>
@@ -366,7 +414,6 @@ ${ticketBtn}
 }
 }
 
-// الحذف
 async function deleteAd(id) {
 if (!confirm('هل أنت متأكد من الحذف؟')) return;
 const { error } = await supabase.from('events').delete().eq('id', id);
@@ -374,22 +421,25 @@ if (!error) document.getElementById(`card-${id}`).remove();
 else alert('فشل الحذف: ' + error.message);
 }
 
-// التعديل
-function openEdit(id, title, price, img) {
+function openEdit(id, title, price, city, img) {
 document.getElementById('editModal').style.display = 'flex';
 document.getElementById('editId').value = id;
 document.getElementById('editTitle').value = title;
 document.getElementById('editPrice').value = price;
+document.getElementById('editCity').value = city;
 document.getElementById('editImg').value = img;
 }
 
 async function saveEdit() {
 const id = document.getElementById('editId').value;
-const title = document.getElementById('editTitle').value;
-const price = document.getElementById('editPrice').value;
-const image_url = document.getElementById('editImg').value;
+const updates = {
+title: document.getElementById('editTitle').value,
+price: document.getElementById('editPrice').value,
+city: document.getElementById('editCity').value,
+image_url: document.getElementById('editImg').value
+};
 
-const { error } = await supabase.from('events').update({ title, price, image_url }).eq('id', id);
+const { error } = await supabase.from('events').update(updates).eq('id', id);
 
 if (!error) {
 document.getElementById('editModal').style.display = 'none';
@@ -397,6 +447,12 @@ loadMyAds();
 } else {
 alert('فشل التعديل: ' + error.message);
 }
+}
+
+function showMsg(el, text, type) {
+el.style.display = 'block';
+el.innerText = text;
+el.className = 'alert ' + type;
 }
 </script>
 
