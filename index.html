@@ -3,126 +3,137 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>فعاليات السعودية - الروابط الرسمية</title>
+<title>وين نروح؟ - دليلك الترفيهي</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-<!-- مكتبة الأيقونات -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-:root { --primary: #10b981; --bg: #f8fafc; --text: #1e293b; --btn-bg: #1f2937; }
-body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-.container { max-width: 500px; margin: 0 auto; padding-bottom: 50px; }
+:root { --primary: #6366f1; --bg: #f8fafc; --text: #1e293b; --card-bg: #ffffff; }
+body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
 
-/* شاشة الإعداد */
-#setup-screen { background: white; padding: 40px; border-radius: 24px; text-align: center; margin-top: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; box-sizing: border-box; font-size: 16px; }
-.btn-login { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 18px; }
-
-/* البطاقة */
-.card {
-background: white;
-border-radius: 24px;
-overflow: hidden;
-box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.08);
-margin-bottom: 30px;
-border: 1px solid #fff;
-position: relative;
-transition: transform 0.2s;
+/* الشريط العلوي */
+.navbar {
+background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;
 }
+.logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.nav-btn { background: #f1f5f9; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; transition: 0.3s; }
+.nav-btn.active { background: var(--primary); color: white; }
 
-/* غلاف الصورة */
-.image-wrapper {
-width: 100%;
-height: 220px;
-background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-position: relative;
-display: flex;
-align-items: center;
-justify-content: center;
-color: #065f46;
-}
+.container { max-width: 600px; margin: 20px auto; padding: 0 20px; padding-bottom: 80px; }
 
-.card-img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-position: absolute;
-top: 0;
-left: 0;
-}
+/* الشاشات */
+.screen { display: none; animation: fadeIn 0.3s; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* البطاقات */
+.card { background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+.image-wrapper { height: 200px; background: #e2e8f0; position: relative; overflow: hidden; }
+.card-img { width: 100%; height: 100%; object-fit: cover; }
 .card-body { padding: 20px; }
-.card h2 { margin: 0 0 8px; font-size: 1.4rem; color: #111; }
-.card p { color: #64748b; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; }
+.card-title { font-size: 1.2rem; margin: 0 0 10px; font-weight: 800; }
+.card-desc { color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 15px; }
+.tag { background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; }
+.price { float: left; font-weight: bold; color: #059669; }
 
-.meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.price { background: #ecfdf5; color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; }
-.location { color: #6b7280; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+/* النماذج (Forms) */
+.form-box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; }
+input, textarea, select { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-family: inherit; }
+input:focus { border-color: var(--primary); outline: none; }
+.btn-main { background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
+/* شاشة الإعداد الأولية */
+#setup-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 200; display: flex; align-items: center; justify-content: center; }
+.setup-content { text-align: center; width: 90%; max-width: 400px; }
 
-/* زر التذاكر الرسمي */
-.ticket-btn {
-background-color: var(--btn-bg);
-color: white;
-text-decoration: none;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 10px;
-padding: 14px;
-border-radius: 12px;
-font-weight: bold;
-transition: 0.3s;
-width: 100%; /* عرض كامل */
-box-sizing: border-box;
-}
-.ticket-btn:hover { background-color: #000; transform: translateY(-2px); }
-
-/* حالة الزر غير المتاح */
-.no-ticket {
-text-align: center;
-color: #94a3b8;
-font-size: 0.9rem;
-padding: 10px;
-border-top: 1px dashed #e2e8f0;
-margin-top: 10px;
-}
-
-.logout { margin-top: 40px; background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; width: 100%; }
+/* رسائل التنبيه */
+.alert { padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem; display: none; }
+.alert.error { background: #fee2e2; color: #991b1b; }
+.alert.success { background: #dcfce7; color: #166534; }
 </style>
 </head>
 <body>
 
-<div id="setup-screen" style="display:none;">
-<h2>🔐 دخول التطبيق</h2>
-<p style="color:#666;">أدخل مفتاح API للمتابعة</p>
-<input type="text" id="apiKeyInput" placeholder="ألصق المفتاح هنا">
-<button class="btn-login" onclick="saveKey()">دخول</button>
+<!-- شاشة الإعداد (المفتاح) -->
+<div id="setup-screen">
+<div class="setup-content">
+<h1 style="color: var(--primary);">وين نروح؟ 🤔</h1>
+<p>يرجى إدخال مفتاح API للبدء</p>
+<input type="text" id="apiKeyInput" placeholder="Supabase Anon Key">
+<button class="btn-main" onclick="saveKey()">بدء التشغيل 🚀</button>
+</div>
 </div>
 
-<div id="app-screen" class="container" style="display:none;">
-<header style="text-align: center; margin-bottom: 30px;">
-<h1 style="color: var(--primary); margin: 0;">فعاليات السعودية 🇸🇦</h1>
-<p style="color: #64748b; margin-top: 5px;">أحدث الفعاليات والتذاكر الرسمية</p>
-</header>
+<!-- الشريط العلوي -->
+<nav class="navbar">
+<a href="#" class="logo"><i class="fas fa-map-marked-alt"></i> وين نروح؟</a>
+<div>
+<button class="nav-btn active" onclick="showScreen('home')">الرئيسية</button>
+<button class="nav-btn" id="merchantBtn" onclick="showScreen('merchant')">دخول التاجر</button>
+</div>
+</nav>
 
-<div id="content">جاري التحميل...</div>
+<div class="container">
+<!-- 1. الشاشة الرئيسية (للزوار) -->
+<div id="home-screen" class="screen active">
+<div style="text-align: center; margin-bottom: 20px;">
+<h2>أحدث الوجهات والفعاليات 🎉</h2>
+<p style="color:#64748b">اكتشف أفضل الأماكن من حولك</p>
+</div>
+<div id="events-list">جاري التحميل...</div>
+</div>
 
-<button onclick="logout()" class="logout">تسجيل خروج</button>
+<!-- 2. شاشة التاجر (تسجيل الدخول / التسجيل) -->
+<div id="auth-screen" class="screen">
+<div class="form-box">
+<h2>👨‍💼 بوابة الشركاء</h2>
+<p>سجل دخولك لإدارة إعلاناتك</p>
+<input type="email" id="email" placeholder="البريد الإلكتروني">
+<input type="password" id="password" placeholder="كلمة المرور">
+<button class="btn-main" onclick="handleAuth('login')">دخول</button>
+<button class="btn-main" style="background:#334155; margin-top:10px;" onclick="handleAuth('signup')">حساب جديد</button>
+<div id="auth-msg" class="alert"></div>
+</div>
+</div>
+
+<!-- 3. لوحة التحكم (لإضافة الفعاليات) -->
+<div id="dashboard-screen" class="screen">
+<div class="form-box">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+<h2 style="margin:0">📢 إضافة إعلان جديد</h2>
+<button onclick="logout()" style="background:none; border:none; color:red; cursor:pointer;">خروج</button>
+</div>
+
+<input type="text" id="newTitle" placeholder="عنوان الفعالية / العرض">
+<textarea id="newDesc" rows="3" placeholder="وصف التفاصيل..."></textarea>
+<input type="text" id="newPrice" placeholder="السعر (مثال: 50)">
+<input type="text" id="newCity" placeholder="المدينة (مثال: جدة)">
+<input type="text" id="newImg" placeholder="رابط الصورة (اختياري)">
+<input type="text" id="newLink" placeholder="رابط الحجز (اختياري)">
+
+<button class="btn-main" onclick="addEvent()">نشر الإعلان ✅</button>
+<div id="add-msg" class="alert"></div>
+</div>
+</div>
+
 </div>
 
 <script>
 const PROJECT_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-const STORAGE_KEY = 'saudi_events_links_v6';
+const STORAGE_KEY = 'wein_nroh_key';
+let supabase;
 
-checkAuth();
+// تشغيل عند البدء
+init();
 
-function checkAuth() {
+function init() {
 const key = localStorage.getItem(STORAGE_KEY);
-if (key) showApp(key);
-else {
-document.getElementById('setup-screen').style.display = 'block';
-document.getElementById('app-screen').style.display = 'none';
+if (key) {
+document.getElementById('setup-screen').style.display = 'none';
+supabase = window.supabase.createClient(PROJECT_URL, key);
+loadEvents(); // تحميل الفعاليات للعامة
+checkUser(); // التحقق هل هناك تاجر مسجل دخول
 }
 }
 
@@ -130,78 +141,134 @@ function saveKey() {
 const key = document.getElementById('apiKeyInput').value.trim();
 if (key.length > 20) {
 localStorage.setItem(STORAGE_KEY, key);
-checkAuth();
+init();
+} else { alert("المفتاح قصير!"); }
+}
+
+// --- التنقل بين الشاشات ---
+function showScreen(screenName) {
+document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+if (screenName === 'home') {
+document.getElementById('home-screen').classList.add('active');
+document.querySelector('button[onclick="showScreen(\'home\')"]').classList.add('active');
+loadEvents(); // تحديث البيانات
+} else if (screenName === 'merchant') {
+// التحقق: إذا مسجل دخول يروح للوحة التحكم، وإلا يروح للتسجيل
+const user = supabase.auth.getUser().then(res => {
+if (res.data.user) {
+document.getElementById('dashboard-screen').classList.add('active');
 } else {
-alert("المفتاح قصير جداً");
+document.getElementById('auth-screen').classList.add('active');
+}
+document.getElementById('merchantBtn').classList.add('active');
+});
 }
 }
 
-async function showApp(key) {
-document.getElementById('setup-screen').style.display = 'none';
-document.getElementById('app-screen').style.display = 'block';
-const content = document.getElementById('content');
+// --- نظام المصادقة (Auth) ---
+async function handleAuth(type) {
+const email = document.getElementById('email').value;
+const pass = document.getElementById('password').value;
+const msg = document.getElementById('auth-msg');
 
-const { createClient } = supabase;
-const client = createClient(PROJECT_URL, key);
+msg.style.display = 'block';
+msg.className = 'alert';
+msg.innerText = 'جاري المعالجة...';
 
-const { data, error } = await client.from('events').select('*').order('created_at', { ascending: false });
+try {
+let result;
+if (type === 'signup') {
+result = await supabase.auth.signUp({ email, password: pass });
+if (result.error) throw result.error;
+msg.className = 'alert success';
+msg.innerText = 'تم إنشاء الحساب! يمكنك الدخول الآن.';
+} else {
+result = await supabase.auth.signInWithPassword({ email, password: pass });
+if (result.error) throw result.error;
+// دخول ناجح
+document.getElementById('email').value = '';
+document.getElementById('password').value = '';
+showScreen('merchant');
+}
+} catch (err) {
+msg.className = 'alert error';
+msg.innerText = err.message;
+}
+}
+
+async function checkUser() {
+const { data } = await supabase.auth.getUser();
+if (data.user) {
+document.getElementById('merchantBtn').innerText = 'لوحة التحكم';
+}
+}
+
+async function logout() {
+await supabase.auth.signOut();
+document.getElementById('merchantBtn').innerText = 'دخول التاجر';
+showScreen('home');
+}
+
+// --- إدارة البيانات (إضافة / عرض) ---
+async function addEvent() {
+const title = document.getElementById('newTitle').value;
+const desc = document.getElementById('newDesc').value;
+const price = document.getElementById('newPrice').value;
+const city = document.getElementById('newCity').value;
+const img = document.getElementById('newImg').value;
+const link = document.getElementById('newLink').value;
+const msg = document.getElementById('add-msg');
+
+if (!title || !price) { alert('العنوان والسعر مطلوبان'); return; }
+
+msg.style.display = 'block'; msg.innerText = 'جاري النشر...';
+
+const { error } = await supabase.from('events').insert({
+title, description: desc, price, city, image_url: img, ticketLink: link
+});
+
+if (error) {
+msg.className = 'alert error'; msg.innerText = 'فشل النشر: ' + error.message;
+} else {
+msg.className = 'alert success'; msg.innerText = 'تم نشر الإعلان بنجاح! 🎉';
+// مسح الحقول
+document.querySelectorAll('#dashboard-screen input, textarea').forEach(i => i.value = '');
+}
+}
+
+async function loadEvents() {
+const list = document.getElementById('events-list');
+// نجلب البيانات من الأحدث للأقدم
+const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
 
 if (data) {
-content.innerHTML = '';
-if (data.length === 0) content.innerHTML = '<p style="text-align:center">لا توجد فعاليات</p>';
+list.innerHTML = '';
+if(data.length === 0) list.innerHTML = '<p style="text-align:center">لا توجد فعاليات حالياً</p>';
 
 data.forEach(item => {
-const imgUrl = item.image_url || '';
+const imgUrl = item.image_url || 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80';
+const linkBtn = item.ticketLink ? `<a href="${item.ticketLink}" target="_blank" style="display:block; margin-top:10px; text-align:center; background:#1e293b; color:white; padding:10px; border-radius:8px; text-decoration:none;">حجز / تفاصيل</a>` : '';
 
-// التحقق من وجود رابط تذكرة
-// ملاحظة: تأكد أن اسم العمود في قاعدة بياناتك هو ticketLink
-const ticketUrl = item.ticketLink;
-
-let buttonHTML = '';
-
-if (ticketUrl && ticketUrl.startsWith('http')) {
-// إذا وجد رابط، أظهر الزر
-buttonHTML = `
-<a href="${ticketUrl}" target="_blank" class="ticket-btn">
-<i class="fas fa-ticket-alt"></i>
-شراء التذكرة
-</a>
-`;
-} else {
-// إذا لم يوجد رابط، أظهر ملاحظة
-buttonHTML = `<div class="no-ticket">التذاكر غير متاحة حالياً</div>`;
-}
-
-content.innerHTML += `
+list.innerHTML += `
 <div class="card">
 <div class="image-wrapper">
-<span>✨ صورة الفعالية</span>
-<img
-src="${imgUrl}"
-class="card-img"
-onerror="this.style.display='none'"
-alt="image"
->
+<img src="${imgUrl}" class="card-img" onerror="this.style.display='none'">
+<div style="position:absolute; bottom:10px; left:10px; background:white; padding:5px 10px; border-radius:20px; font-weight:bold; font-size:0.8rem">
+${item.price} ريال
+</div>
 </div>
 <div class="card-body">
-<div class="meta">
-<div class="location"><i class="fas fa-map-marker-alt"></i> ${item.city || 'الرياض'}</div>
-<div class="price">${item.price ? item.price + ' ريال' : 'مجاني'}</div>
-</div>
-<h2>${item.title || 'فعالية جديدة'}</h2>
-<p>${item.description || 'تفاصيل الفعالية قريباً...'}</p>
-
-${buttonHTML}
+<span class="tag">📍 ${item.city || 'السعودية'}</span>
+<h3 class="card-title" style="margin-top:10px;">${item.title}</h3>
+<p class="card-desc">${item.description || ''}</p>
+${linkBtn}
 </div>
 </div>
 `;
 });
 }
-}
-
-function logout() {
-localStorage.removeItem(STORAGE_KEY);
-location.reload();
 }
 </script>
 
