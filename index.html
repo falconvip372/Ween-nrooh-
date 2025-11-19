@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>وين نروح؟ - المنصة الشاملة</title>
+<title>وين نروح؟ - المنصة المتكاملة</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -136,7 +136,7 @@ input:focus { border-color: var(--primary); outline: none; }
 </div>
 </div>
 
-<!-- قسم إعلاناتي -->
+<!-- قسم إعلاناتي (مع التعديل والحذف) -->
 <div id="my-ads-section" style="display:none;">
 <div id="my-list">جاري تحميل إعلاناتك...</div>
 </div>
@@ -197,8 +197,10 @@ loadPublicEvents();
 } else if (name === 'profile') {
 document.getElementById('profile-screen').classList.add('active');
 document.getElementById('btnProfile').classList.add('active');
+if(currentUser) {
 document.getElementById('welcomeName').innerText = `مرحباً، ${currentUser.email.split('@')[0]} 👋`;
-switchTab('add'); // البدء بصفحة الإضافة
+}
+switchTab('add');
 } else if (name === 'login') {
 document.getElementById('login-screen').classList.add('active');
 document.getElementById('btnProfile').classList.add('active');
@@ -265,7 +267,6 @@ showScreen('home');
 }
 
 // --- إدارة الإعلانات ---
-// 1. إضافة
 async function addEvent() {
 const title = document.getElementById('newTitle').value;
 const price = document.getElementById('newPrice').value;
@@ -285,7 +286,7 @@ price,
 city: document.getElementById('newCity').value,
 image_url: document.getElementById('newImg').value,
 ticketLink: document.getElementById('newLink').value,
-owner_id: currentUser.id // ربط الإعلان بصاحبه
+owner_id: currentUser.id
 });
 
 if (error) {
@@ -293,11 +294,11 @@ msg.className = 'alert error'; msg.innerText = error.message;
 } else {
 msg.className = 'alert success'; msg.innerText = 'تم النشر بنجاح! 🎉';
 document.querySelectorAll('#add-section input, #add-section textarea').forEach(i => i.value = '');
-setTimeout(() => switchTab('my-ads'), 1000); // الانتقال لقائمة الإعلانات
+setTimeout(() => switchTab('my-ads'), 1000);
 }
 }
 
-// 2. عرض إعلانات المستخدم (للتعديل والحذف)
+// عرض إعلانات المستخدم فقط
 async function loadMyAds() {
 const list = document.getElementById('my-list');
 list.innerHTML = '<div style="text-align:center">جاري التحميل...</div>';
@@ -334,7 +335,7 @@ list.innerHTML += `
 }
 }
 
-// 3. عرض للعامة (بدون أزرار تحكم)
+// عرض كل الإعلانات للعامة
 async function loadPublicEvents() {
 const list = document.getElementById('public-list');
 const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false });
@@ -365,19 +366,15 @@ ${ticketBtn}
 }
 }
 
-// 4. الحذف
+// الحذف
 async function deleteAd(id) {
-if (!confirm('هل أنت متأكد من الحذف؟ لا يمكن التراجع.')) return;
-
+if (!confirm('هل أنت متأكد من الحذف؟')) return;
 const { error } = await supabase.from('events').delete().eq('id', id);
-if (!error) {
-document.getElementById(`card-${id}`).remove();
-} else {
-alert('فشل الحذف: ' + error.message);
-}
+if (!error) document.getElementById(`card-${id}`).remove();
+else alert('فشل الحذف: ' + error.message);
 }
 
-// 5. التعديل
+// التعديل
 function openEdit(id, title, price, img) {
 document.getElementById('editModal').style.display = 'flex';
 document.getElementById('editId').value = id;
@@ -396,7 +393,7 @@ const { error } = await supabase.from('events').update({ title, price, image_url
 
 if (!error) {
 document.getElementById('editModal').style.display = 'none';
-loadMyAds(); // تحديث القائمة
+loadMyAds();
 } else {
 alert('فشل التعديل: ' + error.message);
 }
