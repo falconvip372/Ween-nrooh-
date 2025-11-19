@@ -3,71 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>وين نروح؟ - دليلك الترفيهي</title>
+<title>وين نروح؟ - النسخة النهائية</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-:root { --primary: #6366f1; --bg: #f8fafc; --text: #1e293b; --card-bg: #ffffff; }
+:root { --primary: #4f46e5; --bg: #f8fafc; --text: #1e293b; }
 body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
 
-/* الشريط العلوي */
-.navbar {
-background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;
+.navbar { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+
+/* تحسين الشعار ليكون قابلاً للنقر */
+.logo {
+font-weight: 800;
+font-size: 1.4rem;
+color: var(--primary);
+text-decoration: none;
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer; /* يظهر شكل اليد عند المرور عليه */
 }
-.logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; }
-.nav-btn { background: #f1f5f9; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; transition: 0.3s; }
+.logo:hover { opacity: 0.8; } /* تأثير بسيط عند المرور */
+
+.nav-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; transition: 0.3s; }
 .nav-btn.active { background: var(--primary); color: white; }
 
-.container { max-width: 600px; margin: 20px auto; padding: 0 20px; padding-bottom: 80px; }
-
-/* الشاشات */
-.screen { display: none; animation: fadeIn 0.3s; }
+.container { max-width: 600px; margin: 20px auto; padding: 0 20px 80px; }
+.screen { display: none; animation: fadeIn 0.4s; }
 .screen.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* البطاقات */
-.card { background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
-.image-wrapper { height: 200px; background: #e2e8f0; position: relative; overflow: hidden; }
-.card-img { width: 100%; height: 100%; object-fit: cover; }
-.card-body { padding: 20px; }
-.card-title { font-size: 1.2rem; margin: 0 0 10px; font-weight: 800; }
-.card-desc { color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 15px; }
-.tag { background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; }
-.price { float: left; font-weight: bold; color: #059669; }
+.card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #fff; }
 
-/* النماذج (Forms) */
-.form-box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; }
-input, textarea, select { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-family: inherit; }
+.image-wrapper {
+height: 200px;
+background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+position: relative;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #4338ca;
+font-weight: bold;
+}
+.card-img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+
+.card-body { padding: 20px; }
+
+/* النماذج */
+.form-box { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); text-align: center; max-width: 400px; margin: 0 auto; }
+input, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; }
 input:focus { border-color: var(--primary); outline: none; }
-.btn-main { background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
-/* شاشة الإعداد الأولية */
-#setup-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 200; display: flex; align-items: center; justify-content: center; }
-.setup-content { text-align: center; width: 90%; max-width: 400px; }
+
+.btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 5px; transition: 0.2s; }
+.btn-secondary { background: #334155; margin-top: 10px; }
 
 /* رسائل التنبيه */
-.alert { padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem; display: none; }
-.alert.error { background: #fee2e2; color: #991b1b; }
-.alert.success { background: #dcfce7; color: #166534; }
+.alert { padding: 12px; border-radius: 10px; margin-top: 15px; font-size: 0.9rem; display: none; text-align: right; }
+.alert.error { background: #fee2e2; color: #b91c1c; }
+.alert.success { background: #dcfce7; color: #15803d; }
+
+/* زر التذاكر */
+.ticket-btn { background-color: #1e293b; color: white; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 15px; }
+
+/* شاشة الطوارئ (تظهر فقط عند فشل المفتاح المدمج) */
+#emergency-setup { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:999; display:none; flex-direction:column; justify-content:center; align-items:center; padding:20px; box-sizing:border-box; }
 </style>
 </head>
 <body>
 
-<!-- شاشة الإعداد (المفتاح) -->
-<div id="setup-screen">
-<div class="setup-content">
-<h1 style="color: var(--primary);">وين نروح؟ 🤔</h1>
-<p>يرجى إدخال مفتاح API للبدء</p>
-<input type="text" id="apiKeyInput" placeholder="Supabase Anon Key">
-<button class="btn-main" onclick="saveKey()">بدء التشغيل 🚀</button>
+<!-- شاشة الطوارئ (احتياطية) -->
+<div id="emergency-setup">
+<div class="form-box">
+<h2 style="color:red">⚠️ تنبيه</h2>
+<p>فشل الاتصال التلقائي. يرجى إدخال المفتاح يدوياً للإصلاح.</p>
+<input type="text" id="manualKey" placeholder="Supabase API Key">
+<button class="btn-main" onclick="saveManualKey()">حفظ وإصلاح 🛠️</button>
 </div>
 </div>
 
-<!-- الشريط العلوي -->
 <nav class="navbar">
-<a href="#" class="logo"><i class="fas fa-map-marked-alt"></i> وين نروح؟</a>
+<!-- تم التعديل هنا: إضافة onclick للذهاب للرئيسية -->
+<a href="#" class="logo" onclick="showScreen('home'); return false;">
+<i class="fas fa-location-dot"></i> وين نروح؟
+</a>
 <div>
 <button class="nav-btn active" onclick="showScreen('home')">الرئيسية</button>
 <button class="nav-btn" id="merchantBtn" onclick="showScreen('merchant')">دخول التاجر</button>
@@ -75,77 +96,88 @@ input:focus { border-color: var(--primary); outline: none; }
 </nav>
 
 <div class="container">
-<!-- 1. الشاشة الرئيسية (للزوار) -->
+
+<!-- 1. الرئيسية -->
 <div id="home-screen" class="screen active">
-<div style="text-align: center; margin-bottom: 20px;">
-<h2>أحدث الوجهات والفعاليات 🎉</h2>
-<p style="color:#64748b">اكتشف أفضل الأماكن من حولك</p>
+<div style="text-align: center; margin: 20px 0 30px;">
+<h2 style="margin-bottom:5px">أحدث الوجهات 🌟</h2>
+<p style="color:#64748b; margin:0">اكتشف، زر، واستمتع</p>
 </div>
-<div id="events-list">جاري التحميل...</div>
+<div id="events-list">
+<div style="text-align:center; padding:40px;">جاري الاتصال... ⏳</div>
+</div>
 </div>
 
-<!-- 2. شاشة التاجر (تسجيل الدخول / التسجيل) -->
+<!-- 2. بوابة الشركاء -->
 <div id="auth-screen" class="screen">
 <div class="form-box">
-<h2>👨‍💼 بوابة الشركاء</h2>
-<p>سجل دخولك لإدارة إعلاناتك</p>
-<input type="email" id="email" placeholder="البريد الإلكتروني">
-<input type="password" id="password" placeholder="كلمة المرور">
+<div style="font-size: 3rem; margin-bottom: 10px;">👨‍💼</div>
+<h2>بوابة الشركاء</h2>
+<p style="color:#64748b; margin-bottom:20px">سجل دخولك لإدارة إعلاناتك</p>
+<input type="email" id="email" placeholder="البريد الإلكتروني" dir="ltr">
+<input type="password" id="password" placeholder="كلمة المرور" dir="ltr">
 <button class="btn-main" onclick="handleAuth('login')">دخول</button>
-<button class="btn-main" style="background:#334155; margin-top:10px;" onclick="handleAuth('signup')">حساب جديد</button>
+<button class="btn-main btn-secondary" onclick="handleAuth('signup')">إنشاء حساب جديد</button>
 <div id="auth-msg" class="alert"></div>
 </div>
 </div>
 
-<!-- 3. لوحة التحكم (لإضافة الفعاليات) -->
+<!-- 3. لوحة التحكم -->
 <div id="dashboard-screen" class="screen">
-<div class="form-box">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-<h2 style="margin:0">📢 إضافة إعلان جديد</h2>
-<button onclick="logout()" style="background:none; border:none; color:red; cursor:pointer;">خروج</button>
+<div class="form-box" style="max-width: 100%; text-align: right;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;">
+<h3 style="margin:0">📢 إضافة إعلان</h3>
+<button onclick="logout()" style="background:#fee2e2; color:#991b1b; border:none; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem">خروج</button>
 </div>
 
-<input type="text" id="newTitle" placeholder="عنوان الفعالية / العرض">
-<textarea id="newDesc" rows="3" placeholder="وصف التفاصيل..."></textarea>
-<input type="text" id="newPrice" placeholder="السعر (مثال: 50)">
-<input type="text" id="newCity" placeholder="المدينة (مثال: جدة)">
-<input type="text" id="newImg" placeholder="رابط الصورة (اختياري)">
-<input type="text" id="newLink" placeholder="رابط الحجز (اختياري)">
-
-<button class="btn-main" onclick="addEvent()">نشر الإعلان ✅</button>
+<label style="font-size:0.9rem; font-weight:bold; color:#334155">بيانات الإعلان:</label>
+<input type="text" id="newTitle" placeholder="مثال: عرض غداء فاخر">
+<textarea id="newDesc" rows="3" placeholder="التفاصيل..."></textarea>
+<div style="display:flex; gap:10px;">
+<input type="text" id="newPrice" placeholder="السعر">
+<input type="text" id="newCity" placeholder="المدينة">
+</div>
+<input type="text" id="newImg" placeholder="رابط الصورة (اختياري)" dir="ltr">
+<input type="text" id="newLink" placeholder="رابط الحجز (اختياري)" dir="ltr">
+<button class="btn-main" onclick="addEvent()">نشر ✅</button>
 <div id="add-msg" class="alert"></div>
 </div>
 </div>
-
 </div>
 
 <script>
+// ============================================================
+// إعدادات الاتصال
+// ============================================================
 const PROJECT_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-const STORAGE_KEY = 'wein_nroh_key';
-let supabase;
+const HARDCODED_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbHBzYXFhc2dmYXRvanZud2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMzNzIzNzQsImV4cCI6MjA0ODk0ODM3NH0.pS0wijEolium8RJ08FfExuok8NJe4X-y1P2nAaRK4Z8';
 
-// تشغيل عند البدء
-init();
+let currentKey = localStorage.getItem('wein_nroh_manual_key') || HARDCODED_KEY;
+const supabase = window.supabase.createClient(PROJECT_URL, currentKey);
 
-function init() {
-const key = localStorage.getItem(STORAGE_KEY);
-if (key) {
-document.getElementById('setup-screen').style.display = 'none';
-supabase = window.supabase.createClient(PROJECT_URL, key);
-loadEvents(); // تحميل الفعاليات للعامة
-checkUser(); // التحقق هل هناك تاجر مسجل دخول
+initApp();
+
+async function initApp() {
+const { error } = await supabase.from('events').select('count').limit(1);
+if (error && (error.message.includes('key') || error.code === 'PGRST301')) {
+document.getElementById('emergency-setup').style.display = 'flex';
+} else {
+loadEvents();
+checkUser();
 }
 }
 
-function saveKey() {
-const key = document.getElementById('apiKeyInput').value.trim();
+function saveManualKey() {
+const key = document.getElementById('manualKey').value.trim();
 if (key.length > 20) {
-localStorage.setItem(STORAGE_KEY, key);
-init();
-} else { alert("المفتاح قصير!"); }
+localStorage.setItem('wein_nroh_manual_key', key);
+location.reload();
+} else {
+alert("المفتاح قصير جداً");
+}
 }
 
-// --- التنقل بين الشاشات ---
+// --- التنقل ---
 function showScreen(screenName) {
 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -153,10 +185,9 @@ document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
 if (screenName === 'home') {
 document.getElementById('home-screen').classList.add('active');
 document.querySelector('button[onclick="showScreen(\'home\')"]').classList.add('active');
-loadEvents(); // تحديث البيانات
+loadEvents();
 } else if (screenName === 'merchant') {
-// التحقق: إذا مسجل دخول يروح للوحة التحكم، وإلا يروح للتسجيل
-const user = supabase.auth.getUser().then(res => {
+supabase.auth.getUser().then(res => {
 if (res.data.user) {
 document.getElementById('dashboard-screen').classList.add('active');
 } else {
@@ -167,42 +198,41 @@ document.getElementById('merchantBtn').classList.add('active');
 }
 }
 
-// --- نظام المصادقة (Auth) ---
+// --- المصادقة ---
 async function handleAuth(type) {
-const email = document.getElementById('email').value;
-const pass = document.getElementById('password').value;
+const email = document.getElementById('email').value.trim();
+const pass = document.getElementById('password').value.trim();
 const msg = document.getElementById('auth-msg');
 
-msg.style.display = 'block';
-msg.className = 'alert';
-msg.innerText = 'جاري المعالجة...';
+if (!email || !pass) {
+msg.style.display = 'block'; msg.className = 'alert error';
+msg.innerText = 'الرجاء تعبئة البيانات'; return;
+}
+
+msg.style.display = 'block'; msg.className = 'alert'; msg.innerText = 'جاري الاتصال...';
+msg.style.background='#e0f2fe'; msg.style.color='#0369a1';
 
 try {
 let result;
 if (type === 'signup') {
 result = await supabase.auth.signUp({ email, password: pass });
 if (result.error) throw result.error;
-msg.className = 'alert success';
-msg.innerText = 'تم إنشاء الحساب! يمكنك الدخول الآن.';
+msg.className = 'alert success'; msg.innerText = 'تم إنشاء الحساب!';
 } else {
 result = await supabase.auth.signInWithPassword({ email, password: pass });
 if (result.error) throw result.error;
-// دخول ناجح
 document.getElementById('email').value = '';
 document.getElementById('password').value = '';
 showScreen('merchant');
 }
 } catch (err) {
-msg.className = 'alert error';
-msg.innerText = err.message;
+msg.className = 'alert error'; msg.innerText = err.message;
 }
 }
 
 async function checkUser() {
 const { data } = await supabase.auth.getUser();
-if (data.user) {
-document.getElementById('merchantBtn').innerText = 'لوحة التحكم';
-}
+if (data.user) document.getElementById('merchantBtn').innerText = 'لوحة التحكم';
 }
 
 async function logout() {
@@ -211,58 +241,64 @@ document.getElementById('merchantBtn').innerText = 'دخول التاجر';
 showScreen('home');
 }
 
-// --- إدارة البيانات (إضافة / عرض) ---
+// --- إدارة الفعاليات ---
 async function addEvent() {
 const title = document.getElementById('newTitle').value;
-const desc = document.getElementById('newDesc').value;
 const price = document.getElementById('newPrice').value;
-const city = document.getElementById('newCity').value;
-const img = document.getElementById('newImg').value;
-const link = document.getElementById('newLink').value;
 const msg = document.getElementById('add-msg');
 
-if (!title || !price) { alert('العنوان والسعر مطلوبان'); return; }
-
-msg.style.display = 'block'; msg.innerText = 'جاري النشر...';
+if (!title || !price) {
+msg.style.display='block'; msg.className='alert error'; msg.innerText='العنوان والسعر مطلوبان'; return;
+}
+msg.style.display='block'; msg.className='alert'; msg.innerText='جاري النشر...';
 
 const { error } = await supabase.from('events').insert({
-title, description: desc, price, city, image_url: img, ticketLink: link
+title, description: document.getElementById('newDesc').value,
+price, city: document.getElementById('newCity').value,
+image_url: document.getElementById('newImg').value,
+ticketLink: document.getElementById('newLink').value
 });
 
 if (error) {
-msg.className = 'alert error'; msg.innerText = 'فشل النشر: ' + error.message;
+msg.className = 'alert error'; msg.innerText = error.message;
 } else {
-msg.className = 'alert success'; msg.innerText = 'تم نشر الإعلان بنجاح! 🎉';
-// مسح الحقول
+msg.className = 'alert success'; msg.innerText = 'تم النشر بنجاح! 🎉';
 document.querySelectorAll('#dashboard-screen input, textarea').forEach(i => i.value = '');
 }
 }
 
 async function loadEvents() {
 const list = document.getElementById('events-list');
-// نجلب البيانات من الأحدث للأقدم
 const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+
+if (error) {
+console.error(error);
+return;
+}
 
 if (data) {
 list.innerHTML = '';
-if(data.length === 0) list.innerHTML = '<p style="text-align:center">لا توجد فعاليات حالياً</p>';
+if(data.length === 0) list.innerHTML = '<div style="text-align:center; padding:40px; color:#94a3b8">لا توجد فعاليات حالياً</div>';
 
 data.forEach(item => {
 const imgUrl = item.image_url || 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80';
-const linkBtn = item.ticketLink ? `<a href="${item.ticketLink}" target="_blank" style="display:block; margin-top:10px; text-align:center; background:#1e293b; color:white; padding:10px; border-radius:8px; text-decoration:none;">حجز / تفاصيل</a>` : '';
+const linkBtn = item.ticketLink ? `<a href="${item.ticketLink}" target="_blank" class="ticket-btn"><i class="fas fa-ticket-alt"></i> حجز / تفاصيل</a>` : '';
 
 list.innerHTML += `
 <div class="card">
 <div class="image-wrapper">
+<span style="z-index:1">✨ صورة الفعالية</span>
 <img src="${imgUrl}" class="card-img" onerror="this.style.display='none'">
-<div style="position:absolute; bottom:10px; left:10px; background:white; padding:5px 10px; border-radius:20px; font-weight:bold; font-size:0.8rem">
+<div style="position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.95); padding:5px 12px; border-radius:20px; font-weight:bold; font-size:0.85rem; color:var(--primary); box-shadow:0 2px 10px rgba(0,0,0,0.1); z-index:2;">
 ${item.price} ريال
 </div>
 </div>
 <div class="card-body">
-<span class="tag">📍 ${item.city || 'السعودية'}</span>
-<h3 class="card-title" style="margin-top:10px;">${item.title}</h3>
-<p class="card-desc">${item.description || ''}</p>
+<div style="display:flex; align-items:center; gap:5px; margin-bottom:8px; color:#64748b; font-size:0.9rem;">
+<i class="fas fa-map-marker-alt"></i> ${item.city || 'السعودية'}
+</div>
+<h3 style="margin:0 0 10px; font-size:1.3rem;">${item.title}</h3>
+<p style="color:#64748b; line-height:1.6; font-size:0.95rem; margin-bottom:0;">${item.description || ''}</p>
 ${linkBtn}
 </div>
 </div>
