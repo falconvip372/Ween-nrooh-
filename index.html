@@ -3,72 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فعاليات السعودية - بالصور</title>
+    <title>فعاليات السعودية - النسخة النهائية</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <style>
-        :root { --primary: #10b981; --bg: #f1f5f9; --text: #1e293b; }
+        :root { --primary: #059669; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; } /* جعلت العرض مناسب للجوال */
+        .container { max-width: 500px; margin: 0 auto; }
 
-        /* تصميم شاشة الدخول */
-        #setup-screen { background: white; padding: 30px; border-radius: 20px; text-align: center; margin-top: 50px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 10px; text-align: center; box-sizing: border-box; }
-        .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+        /* شاشة الإعداد */
+        #setup-screen { background: white; padding: 40px; border-radius: 24px; text-align: center; margin-top: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; box-sizing: border-box; font-size: 16px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
 
-        /* تصميم البطاقة الجديد مع الصورة */
+        /* البطاقة */
         .card {
             background: white;
-            border-radius: 20px;
-            overflow: hidden; /* لقص الصورة داخل الحدود */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             margin-bottom: 25px;
             border: 1px solid #fff;
         }
 
-        /* منطقة الصورة */
+        /* --- الحل السحري للصور --- */
+        .image-wrapper {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); /* خلفية جميلة تظهر عند الخطأ */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #065f46;
+            font-weight: bold;
+            position: relative;
+        }
+        
         .card-img {
             width: 100%;
-            height: 200px;
-            object-fit: cover; /* ملء المساحة دون تمطيط */
-            background-color: #eee;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.3s;
         }
+        /* ------------------------- */
 
-        .card-body { padding: 20px; }
-        .card h2 { margin: 0 0 10px; font-size: 1.3rem; color: #333; }
-        .card p { color: #666; margin-bottom: 15px; font-size: 0.95rem; }
+        .card-body { padding: 20px; position: relative; }
+        .card h2 { margin: 0 0 10px; font-size: 1.3rem; color: #111; }
+        .card p { color: #64748b; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; }
 
-        .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .price { background: #ecfdf5; color: var(--primary); padding: 5px 15px; border-radius: 50px; font-weight: bold; }
+        .meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .price { background: #ecfdf5; color: var(--primary); padding: 8px 16px; border-radius: 50px; font-weight: 800; font-size: 0.9rem; }
         .location { color: #94a3b8; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
 
-        /* زر الخروج */
-        .logout { display: block; margin: 30px auto; background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; }
+        .logout { margin-top: 40px; background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; width: 100%; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <!-- شاشة الإعداد -->
     <div id="setup-screen" style="display:none;">
-        <h2>🔐 المفتاح السري</h2>
-        <p>الرجاء لصق المفتاح (API Key) للمتابعة</p>
-        <input type="text" id="apiKeyInput" placeholder="الصق المفتاح هنا">
+        <h2>🔐 مفتاح الدخول</h2>
+        <p style="color:#666;">أدخل مفتاح API للإتصال</p>
+        <input type="text" id="apiKeyInput" placeholder="ألصق المفتاح هنا">
         <button class="btn" onclick="saveKey()">دخول</button>
     </div>
 
-    <!-- شاشة التطبيق -->
     <div id="app-screen" class="container" style="display:none;">
-        <h1 style="text-align: center; color: var(--primary);">فعاليات السعودية 🇸🇦</h1>
-        
+        <h1 style="text-align: center; color: var(--primary); margin-bottom: 30px;">فعاليات السعودية 🇸🇦</h1>
         <div id="content">جاري التحميل...</div>
-        
         <button onclick="logout()" class="logout">تسجيل خروج</button>
     </div>
 
 <script>
     const PROJECT_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-    const STORAGE_KEY = 'saudi_events_key_v2';
+    const STORAGE_KEY = 'saudi_events_key_final';
 
     checkAuth();
 
@@ -87,7 +99,7 @@
             localStorage.setItem(STORAGE_KEY, key);
             checkAuth();
         } else {
-            alert("المفتاح قصير جداً!");
+            alert("المفتاح قصير جداً");
         }
     }
 
@@ -99,7 +111,6 @@
         const { createClient } = supabase;
         const client = createClient(PROJECT_URL, key);
 
-        // جلب البيانات
         const { data, error } = await client.from('events').select('*').order('created_at', { ascending: false });
 
         if (data) {
@@ -107,20 +118,29 @@
             if (data.length === 0) content.innerHTML = '<p style="text-align:center">لا توجد فعاليات</p>';
 
             data.forEach(item => {
-                // اختيار صورة افتراضية إذا لم يكن هناك رابط
-                const imgUrl = item.image_url && item.image_url.startsWith('http') 
-                    ? item.image_url 
-                    : 'https://images.unsplash.com/photo-1514525253440-b393452e8d03?auto=format&fit=crop&w=500&q=80'; // صورة افتراضية جميلة
+                // رابط الصورة
+                const imgUrl = item.image_url || '';
 
                 content.innerHTML += `
                     <div class="card">
-                        <img src="${imgUrl}" class="card-img" alt="صورة الفعالية">
+                        <div class="image-wrapper">
+                            <!-- هذا النص يظهر فقط إذا اختفت الصورة -->
+                            <span>✨ صورة الفعالية</span>
+                            
+                            <!-- كود الصورة الذكي -->
+                            <img 
+                                src="${imgUrl}" 
+                                class="card-img" 
+                                onerror="this.style.display='none'" 
+                                alt="image"
+                            >
+                        </div>
                         <div class="card-body">
-                            <h2>${item.title || 'بدون عنوان'}</h2>
-                            <p>${item.description || 'لا يوجد وصف'}</p>
+                            <h2>${item.title || 'فعالية جديدة'}</h2>
+                            <p>${item.description || 'تفاصيل الفعالية قريباً...'}</p>
                             <div class="meta">
+                                <div class="location">📍 ${item.city || 'الرياض'}</div>
                                 <div class="price">${item.price ? item.price + ' ريال' : 'مجاني'}</div>
-                                <div class="location">📍 ${item.city || 'السعودية'}</div>
                             </div>
                         </div>
                     </div>
