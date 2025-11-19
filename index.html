@@ -1,158 +1,208 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فعاليات السعودية - النسخة النهائية</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        :root { --primary: #059669; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فعاليات السعودية - الروابط الرسمية</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!-- مكتبة الأيقونات -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        /* شاشة الإعداد */
-        #setup-screen { background: white; padding: 40px; border-radius: 24px; text-align: center; margin-top: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; box-sizing: border-box; font-size: 16px; }
-        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
+<style>
+:root { --primary: #10b981; --bg: #f8fafc; --text: #1e293b; --btn-bg: #1f2937; }
+body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+.container { max-width: 500px; margin: 0 auto; padding-bottom: 50px; }
 
-        /* البطاقة */
-        .card {
-            background: white;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-            border: 1px solid #fff;
-        }
+/* شاشة الإعداد */
+#setup-screen { background: white; padding: 40px; border-radius: 24px; text-align: center; margin-top: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; box-sizing: border-box; font-size: 16px; }
+.btn-login { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 18px; }
 
-        /* --- الحل السحري للصور --- */
-        .image-wrapper {
-            width: 100%;
-            height: 220px;
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); /* خلفية جميلة تظهر عند الخطأ */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #065f46;
-            font-weight: bold;
-            position: relative;
-        }
-        
-        .card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            transition: opacity 0.3s;
-        }
-        /* ------------------------- */
+/* البطاقة */
+.card {
+background: white;
+border-radius: 24px;
+overflow: hidden;
+box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.08);
+margin-bottom: 30px;
+border: 1px solid #fff;
+position: relative;
+transition: transform 0.2s;
+}
 
-        .card-body { padding: 20px; position: relative; }
-        .card h2 { margin: 0 0 10px; font-size: 1.3rem; color: #111; }
-        .card p { color: #64748b; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; }
+/* غلاف الصورة */
+.image-wrapper {
+width: 100%;
+height: 220px;
+background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+position: relative;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #065f46;
+}
 
-        .meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px; }
-        .price { background: #ecfdf5; color: var(--primary); padding: 8px 16px; border-radius: 50px; font-weight: 800; font-size: 0.9rem; }
-        .location { color: #94a3b8; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+.card-img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+position: absolute;
+top: 0;
+left: 0;
+}
 
-        .logout { margin-top: 40px; background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; width: 100%; font-size: 0.9rem; }
-    </style>
+.card-body { padding: 20px; }
+.card h2 { margin: 0 0 8px; font-size: 1.4rem; color: #111; }
+.card p { color: #64748b; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; }
+
+.meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.price { background: #ecfdf5; color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; }
+.location { color: #6b7280; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+
+/* زر التذاكر الرسمي */
+.ticket-btn {
+background-color: var(--btn-bg);
+color: white;
+text-decoration: none;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+padding: 14px;
+border-radius: 12px;
+font-weight: bold;
+transition: 0.3s;
+width: 100%; /* عرض كامل */
+box-sizing: border-box;
+}
+.ticket-btn:hover { background-color: #000; transform: translateY(-2px); }
+
+/* حالة الزر غير المتاح */
+.no-ticket {
+text-align: center;
+color: #94a3b8;
+font-size: 0.9rem;
+padding: 10px;
+border-top: 1px dashed #e2e8f0;
+margin-top: 10px;
+}
+
+.logout { margin-top: 40px; background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; width: 100%; }
+</style>
 </head>
 <body>
 
-    <div id="setup-screen" style="display:none;">
-        <h2>🔐 مفتاح الدخول</h2>
-        <p style="color:#666;">أدخل مفتاح API للإتصال</p>
-        <input type="text" id="apiKeyInput" placeholder="ألصق المفتاح هنا">
-        <button class="btn" onclick="saveKey()">دخول</button>
-    </div>
+<div id="setup-screen" style="display:none;">
+<h2>🔐 دخول التطبيق</h2>
+<p style="color:#666;">أدخل مفتاح API للمتابعة</p>
+<input type="text" id="apiKeyInput" placeholder="ألصق المفتاح هنا">
+<button class="btn-login" onclick="saveKey()">دخول</button>
+</div>
 
-    <div id="app-screen" class="container" style="display:none;">
-        <h1 style="text-align: center; color: var(--primary); margin-bottom: 30px;">فعاليات السعودية 🇸🇦</h1>
-        <div id="content">جاري التحميل...</div>
-        <button onclick="logout()" class="logout">تسجيل خروج</button>
-    </div>
+<div id="app-screen" class="container" style="display:none;">
+<header style="text-align: center; margin-bottom: 30px;">
+<h1 style="color: var(--primary); margin: 0;">فعاليات السعودية 🇸🇦</h1>
+<p style="color: #64748b; margin-top: 5px;">أحدث الفعاليات والتذاكر الرسمية</p>
+</header>
+
+<div id="content">جاري التحميل...</div>
+
+<button onclick="logout()" class="logout">تسجيل خروج</button>
+</div>
 
 <script>
-    const PROJECT_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
-    const STORAGE_KEY = 'saudi_events_key_final';
+const PROJECT_URL = 'https://delpsaqasgfatojvnwkl.supabase.co';
+const STORAGE_KEY = 'saudi_events_links_v6';
 
-    checkAuth();
+checkAuth();
 
-    function checkAuth() {
-        const key = localStorage.getItem(STORAGE_KEY);
-        if (key) showApp(key);
-        else {
-            document.getElementById('setup-screen').style.display = 'block';
-            document.getElementById('app-screen').style.display = 'none';
-        }
-    }
+function checkAuth() {
+const key = localStorage.getItem(STORAGE_KEY);
+if (key) showApp(key);
+else {
+document.getElementById('setup-screen').style.display = 'block';
+document.getElementById('app-screen').style.display = 'none';
+}
+}
 
-    function saveKey() {
-        const key = document.getElementById('apiKeyInput').value.trim();
-        if (key.length > 20) {
-            localStorage.setItem(STORAGE_KEY, key);
-            checkAuth();
-        } else {
-            alert("المفتاح قصير جداً");
-        }
-    }
+function saveKey() {
+const key = document.getElementById('apiKeyInput').value.trim();
+if (key.length > 20) {
+localStorage.setItem(STORAGE_KEY, key);
+checkAuth();
+} else {
+alert("المفتاح قصير جداً");
+}
+}
 
-    async function showApp(key) {
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'block';
-        const content = document.getElementById('content');
+async function showApp(key) {
+document.getElementById('setup-screen').style.display = 'none';
+document.getElementById('app-screen').style.display = 'block';
+const content = document.getElementById('content');
 
-        const { createClient } = supabase;
-        const client = createClient(PROJECT_URL, key);
+const { createClient } = supabase;
+const client = createClient(PROJECT_URL, key);
 
-        const { data, error } = await client.from('events').select('*').order('created_at', { ascending: false });
+const { data, error } = await client.from('events').select('*').order('created_at', { ascending: false });
 
-        if (data) {
-            content.innerHTML = '';
-            if (data.length === 0) content.innerHTML = '<p style="text-align:center">لا توجد فعاليات</p>';
+if (data) {
+content.innerHTML = '';
+if (data.length === 0) content.innerHTML = '<p style="text-align:center">لا توجد فعاليات</p>';
 
-            data.forEach(item => {
-                // رابط الصورة
-                const imgUrl = item.image_url || '';
+data.forEach(item => {
+const imgUrl = item.image_url || '';
 
-                content.innerHTML += `
-                    <div class="card">
-                        <div class="image-wrapper">
-                            <!-- هذا النص يظهر فقط إذا اختفت الصورة -->
-                            <span>✨ صورة الفعالية</span>
-                            
-                            <!-- كود الصورة الذكي -->
-                            <img 
-                                src="${imgUrl}" 
-                                class="card-img" 
-                                onerror="this.style.display='none'" 
-                                alt="image"
-                            >
-                        </div>
-                        <div class="card-body">
-                            <h2>${item.title || 'فعالية جديدة'}</h2>
-                            <p>${item.description || 'تفاصيل الفعالية قريباً...'}</p>
-                            <div class="meta">
-                                <div class="location">📍 ${item.city || 'الرياض'}</div>
-                                <div class="price">${item.price ? item.price + ' ريال' : 'مجاني'}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-    }
+// التحقق من وجود رابط تذكرة
+// ملاحظة: تأكد أن اسم العمود في قاعدة بياناتك هو ticketLink
+const ticketUrl = item.ticketLink;
 
-    function logout() {
-        localStorage.removeItem(STORAGE_KEY);
-        location.reload();
-    }
+let buttonHTML = '';
+
+if (ticketUrl && ticketUrl.startsWith('http')) {
+// إذا وجد رابط، أظهر الزر
+buttonHTML = `
+<a href="${ticketUrl}" target="_blank" class="ticket-btn">
+<i class="fas fa-ticket-alt"></i>
+شراء التذكرة
+</a>
+`;
+} else {
+// إذا لم يوجد رابط، أظهر ملاحظة
+buttonHTML = `<div class="no-ticket">التذاكر غير متاحة حالياً</div>`;
+}
+
+content.innerHTML += `
+<div class="card">
+<div class="image-wrapper">
+<span>✨ صورة الفعالية</span>
+<img
+src="${imgUrl}"
+class="card-img"
+onerror="this.style.display='none'"
+alt="image"
+>
+</div>
+<div class="card-body">
+<div class="meta">
+<div class="location"><i class="fas fa-map-marker-alt"></i> ${item.city || 'الرياض'}</div>
+<div class="price">${item.price ? item.price + ' ريال' : 'مجاني'}</div>
+</div>
+<h2>${item.title || 'فعالية جديدة'}</h2>
+<p>${item.description || 'تفاصيل الفعالية قريباً...'}</p>
+
+${buttonHTML}
+</div>
+</div>
+`;
+});
+}
+}
+
+function logout() {
+localStorage.removeItem(STORAGE_KEY);
+location.reload();
+}
 </script>
 
 </body>
